@@ -1,0 +1,12 @@
+bin/
+target/
+
+src/
+
+.settings/
+archive/
+
+.classpath
+.project
+pom.xml
+README.md

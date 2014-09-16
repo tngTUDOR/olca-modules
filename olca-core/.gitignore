@@ -1,0 +1,11 @@
+bin/
+target/
+/derby.log
+.idea
+olca-core.iml
+/.classpath
+src/
+.settings/
+.project
+pom.xml
+README.md

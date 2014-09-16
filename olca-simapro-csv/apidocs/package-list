@@ -1,0 +1,7 @@
+org.openlca.simapro.csv
+org.openlca.simapro.csv.model
+org.openlca.simapro.csv.model.annotations
+org.openlca.simapro.csv.model.enums
+org.openlca.simapro.csv.model.process
+org.openlca.simapro.csv.model.refdata
+org.openlca.simapro.csv.reader

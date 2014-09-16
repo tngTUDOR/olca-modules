@@ -1,0 +1,10 @@
+bin/
+target/
+src/
+META-INF/
+schemas/
+.settings/
+.settings
+.classpath
+.project
+pom.xml

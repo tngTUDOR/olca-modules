@@ -1,0 +1,10 @@
+bin/
+target/
+
+src/
+.settings/
+about_files/
+
+.classpath
+.project
+pom.xml

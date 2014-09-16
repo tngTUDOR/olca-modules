@@ -1,0 +1,8 @@
+target
+olca-modules.iml
+.idea
+*.iml
+*.*~
+
+LICENSE.txt
+README.md

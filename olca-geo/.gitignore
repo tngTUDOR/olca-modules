@@ -1,0 +1,13 @@
+/target
+src/
+.settings/
+
+.classpath
+.project
+olca-geo.iml
+pom.xml
+README.md
+
+# IDE settings
+/.idea
+olca-eigen.iml

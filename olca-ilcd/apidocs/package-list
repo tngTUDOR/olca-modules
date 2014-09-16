@@ -1,0 +1,13 @@
+org.openlca.ilcd.commons
+org.openlca.ilcd.contacts
+org.openlca.ilcd.descriptors
+org.openlca.ilcd.flowproperties
+org.openlca.ilcd.flows
+org.openlca.ilcd.io
+org.openlca.ilcd.lists
+org.openlca.ilcd.methods
+org.openlca.ilcd.processes
+org.openlca.ilcd.productmodel
+org.openlca.ilcd.sources
+org.openlca.ilcd.units
+org.openlca.ilcd.util

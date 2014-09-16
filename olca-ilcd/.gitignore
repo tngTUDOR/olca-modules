@@ -1,0 +1,12 @@
+bin/
+target/
+
+src/
+.settings/
+jaxb_config/
+schemas/
+
+.classpath
+.project
+pom.xml
+README.md
