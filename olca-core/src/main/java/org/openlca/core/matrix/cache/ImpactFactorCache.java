@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.matrix.CalcImpactFactor;
+import org.openlca.core.matrix.dbtables.ConversionTable;
 import org.openlca.core.model.UncertaintyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

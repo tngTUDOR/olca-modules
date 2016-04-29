@@ -1,4 +1,4 @@
-package org.openlca.core.matrix.cache;
+package org.openlca.core.matrix.dbtables;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
