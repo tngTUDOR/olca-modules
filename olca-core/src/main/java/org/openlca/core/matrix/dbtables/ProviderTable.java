@@ -1,11 +1,12 @@
 package org.openlca.core.matrix.dbtables;
 
-import gnu.trove.map.hash.TLongDoubleHashMap;
-import gnu.trove.map.hash.TLongObjectHashMap;
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.matrix.LongPair;
 import org.openlca.core.model.FlowType;
 import org.openlca.core.model.ProcessType;
+
+import gnu.trove.map.hash.TLongDoubleHashMap;
+import gnu.trove.map.hash.TLongObjectHashMap;
 
 public class ProviderTable {
 
@@ -21,10 +22,15 @@ public class ProviderTable {
 
 	/**
 	 * Returns a pair of processID and exchangeID of a product output or waste
-	 * input for the given flow. It returns null if no provider is found.
+	 * input for the given exchange. If a default provider is set for the given
+	 * exchange it will return this provider. It returns null if no provider is
+	 * found.
 	 */
-	public LongPair get(long flowID) {
-		return map.get(flowID);
+	public LongPair get(PicoExchange exchange) {
+		if (exchange == null)
+			return null;
+		// TODO:
+		return map.get(exchange.flowID);
 	}
 
 	private static class Builder {

@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.openlca.core.matrix.CalcExchange;
 import org.openlca.core.matrix.LongPair;
 import org.openlca.core.matrix.TechIndex;
-import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.matrix.dbtables.ExchangeTable;
+import org.openlca.core.matrix.dbtables.PicoExchange;
+import org.openlca.core.matrix.dbtables.ProviderTable;
 import org.openlca.core.model.FlowType;
-import org.openlca.core.model.ProcessType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,20 +21,14 @@ public class ProductIndexCutoffBuilder implements IProductIndexBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
-	private MatrixCache cache;
-	private ProviderSearch providerSearch;
+	private ExchangeTable exchanges;
+	private ProviderTable providers;
 	private double cutoff;
 
-	public ProductIndexCutoffBuilder(MatrixCache cache, double cutoff) {
-		this.cache = cache;
+	public ProductIndexCutoffBuilder(ExchangeTable exchanges, ProviderTable providers, double cutoff) {
+		this.exchanges = exchanges;
+		this.providers = providers;
 		this.cutoff = cutoff;
-		this.providerSearch = new ProviderSearch(cache.getProcessTable(),
-				ProcessType.LCI_RESULT);
-	}
-
-	@Override
-	public void setPreferredType(ProcessType type) {
-		providerSearch.setPreferredType(type);
 	}
 
 	@Override
@@ -94,16 +88,16 @@ public class ProductIndexCutoffBuilder implements IProductIndexBuilder {
 			// demands (see the compareTo method in Node)
 			Collections.sort(next);
 
-			Map<Long, List<CalcExchange>> nextExchanges = fetchNextExchanges();
+			Map<Long, List<PicoExchange>> nextExchanges = fetchNextExchanges();
 			List<Node> nextLayer = new ArrayList<>();
 			for (Node node : next) {
 				node.state = NodeState.PROGRESS;
-				List<CalcExchange> exchanges = nextExchanges.get(
+				List<PicoExchange> exchanges = nextExchanges.get(
 						node.product.getFirst());
-				CalcExchange output = getOutput(node, exchanges);
+				PicoExchange output = getOutput(node, exchanges);
 				if (output == null)
 					continue;
-				node.outputAmount = amount(output);
+				node.outputAmount = output.amount;
 				node.scalingFactor = node.demand / node.outputAmount;
 				followInputs(node, exchanges, nextLayer);
 				node.state = NodeState.FOLLOWED;
@@ -112,13 +106,13 @@ public class ProductIndexCutoffBuilder implements IProductIndexBuilder {
 			next.addAll(nextLayer);
 		}
 
-		private void followInputs(Node node, List<CalcExchange> exchanges,
+		private void followInputs(Node node, List<PicoExchange> exchanges,
 				List<Node> nextLayer) {
-			for (CalcExchange input : getInputs(node, exchanges)) {
-				LongPair inputProduct = providerSearch.find(input);
+			for (PicoExchange input : getInputs(node, exchanges)) {
+				LongPair inputProduct = providers.get(input);
 				if (inputProduct == null)
 					continue;
-				double inputAmount = amount(input);
+				double inputAmount = input.amount;
 				double inputDemand = node.scalingFactor * inputAmount;
 				Node providerNode = nodes.get(inputProduct);
 				if (providerNode != null)
@@ -181,41 +175,33 @@ public class ProductIndexCutoffBuilder implements IProductIndexBuilder {
 			}
 		}
 
-		private CalcExchange getOutput(Node node, List<CalcExchange> all) {
-			for (CalcExchange e : all) {
-				if (e.input
-						|| e.flowType != FlowType.PRODUCT_FLOW
-						|| e.flowId != node.product.getSecond())
+		private PicoExchange getOutput(Node node, List<PicoExchange> all) {
+			for (PicoExchange e : all) {
+				if (e.isInput || e.flowType != FlowType.PRODUCT_FLOW
+						|| e.flowID != node.product.getSecond())
 					continue;
 				return e;
 			}
 			return null;
 		}
 
-		private List<CalcExchange> getInputs(Node node,
-				List<CalcExchange> all) {
-			List<CalcExchange> inputs = new ArrayList<>();
-			for (CalcExchange e : all) {
-				if (e.input && e.flowType == FlowType.PRODUCT_FLOW)
+		private List<PicoExchange> getInputs(Node node, List<PicoExchange> all) {
+			List<PicoExchange> inputs = new ArrayList<>();
+			for (PicoExchange e : all) {
+				if (e.isInput && e.flowType == FlowType.PRODUCT_FLOW)
 					inputs.add(e);
 			}
 			return inputs;
 		}
 
-		private double amount(CalcExchange e) {
-			if (e == null)
-				return 0;
-			return e.amount * e.conversionFactor;
-		}
-
-		private Map<Long, List<CalcExchange>> fetchNextExchanges() {
+		private Map<Long, List<PicoExchange>> fetchNextExchanges() {
 			if (next.isEmpty())
 				return Collections.emptyMap();
 			Set<Long> processIds = new HashSet<>();
 			for (Node node : next)
 				processIds.add(node.product.getFirst());
 			try {
-				return cache.getExchangeCache().getAll(processIds);
+				return exchanges.get(processIds);
 			} catch (Exception e) {
 				Logger log = LoggerFactory.getLogger(getClass());
 				log.error("failed to load exchanges from cache", e);

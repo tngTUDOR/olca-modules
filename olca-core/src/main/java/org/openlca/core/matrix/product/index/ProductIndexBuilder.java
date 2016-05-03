@@ -7,31 +7,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.openlca.core.matrix.CalcExchange;
 import org.openlca.core.matrix.LongPair;
 import org.openlca.core.matrix.TechIndex;
-import org.openlca.core.matrix.cache.MatrixCache;
-import org.openlca.core.matrix.cache.ProcessTable;
+import org.openlca.core.matrix.dbtables.ExchangeTable;
+import org.openlca.core.matrix.dbtables.PicoExchange;
+import org.openlca.core.matrix.dbtables.ProviderTable;
 import org.openlca.core.model.FlowType;
-import org.openlca.core.model.ProcessType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ProductIndexBuilder implements IProductIndexBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
-	private ProcessType preferredType = ProcessType.LCI_RESULT;
-	private MatrixCache cache;
-	private ProcessTable processTable;
+	private ExchangeTable exchanges;
+	private ProviderTable providers;
 
-	public ProductIndexBuilder(MatrixCache cache) {
-		this.cache = cache;
-		this.processTable = cache.getProcessTable();
-	}
-
-	@Override
-	public void setPreferredType(ProcessType preferredType) {
-		this.preferredType = preferredType;
+	public ProductIndexBuilder(ExchangeTable exchanges, ProviderTable providers) {
+		this.exchanges = exchanges;
+		this.providers = providers;
 	}
 
 	@Override
@@ -50,19 +43,19 @@ public class ProductIndexBuilder implements IProductIndexBuilder {
 		while (!block.isEmpty()) {
 			List<LongPair> nextBlock = new ArrayList<>();
 			log.trace("fetch next block with {} entries", block.size());
-			Map<Long, List<CalcExchange>> exchanges = fetchExchanges(block);
+			Map<Long, List<PicoExchange>> exchanges = fetchExchanges(block);
 			for (LongPair recipient : block) {
 				handled.add(recipient);
-				List<CalcExchange> processExchanges = exchanges.get(recipient
+				List<PicoExchange> processExchanges = exchanges.get(recipient
 						.getFirst());
-				List<CalcExchange> productInputs = getProductInputs(
+				List<PicoExchange> productInputs = getProductInputs(
 						processExchanges);
-				for (CalcExchange productInput : productInputs) {
-					LongPair provider = findProvider(productInput);
+				for (PicoExchange productInput : productInputs) {
+					LongPair provider = providers.get(productInput);
 					if (provider == null)
 						continue;
 					LongPair recipientInput = new LongPair(
-							recipient.getFirst(), productInput.flowId);
+							recipient.getFirst(), productInput.exchangeID);
 					index.putLink(recipientInput, provider);
 					if (!handled.contains(provider)
 							&& !nextBlock.contains(provider))
@@ -74,13 +67,13 @@ public class ProductIndexBuilder implements IProductIndexBuilder {
 		return index;
 	}
 
-	private List<CalcExchange> getProductInputs(
-			List<CalcExchange> processExchanges) {
+	private List<PicoExchange> getProductInputs(
+			List<PicoExchange> processExchanges) {
 		if (processExchanges == null || processExchanges.isEmpty())
 			return Collections.emptyList();
-		List<CalcExchange> productInputs = new ArrayList<>();
-		for (CalcExchange exchange : processExchanges) {
-			if (!exchange.input)
+		List<PicoExchange> productInputs = new ArrayList<>();
+		for (PicoExchange exchange : processExchanges) {
+			if (!exchange.isInput)
 				continue;
 			if (exchange.flowType == FlowType.ELEMENTARY_FLOW)
 				continue;
@@ -89,14 +82,14 @@ public class ProductIndexBuilder implements IProductIndexBuilder {
 		return productInputs;
 	}
 
-	private Map<Long, List<CalcExchange>> fetchExchanges(List<LongPair> block) {
+	private Map<Long, List<PicoExchange>> fetchExchanges(List<LongPair> block) {
 		if (block.isEmpty())
 			return Collections.emptyMap();
 		Set<Long> processIds = new HashSet<>();
 		for (LongPair pair : block)
 			processIds.add(pair.getFirst());
 		try {
-			return cache.getExchangeCache().getAll(processIds);
+			return exchanges.get(processIds);
 		} catch (Exception e) {
 			Logger log = LoggerFactory.getLogger(getClass());
 			log.error("failed to load exchanges from cache", e);
@@ -104,36 +97,4 @@ public class ProductIndexBuilder implements IProductIndexBuilder {
 		}
 	}
 
-	private LongPair findProvider(CalcExchange productInput) {
-		if (productInput == null)
-			return null;
-		long productId = productInput.flowId;
-		long[] processIds = processTable.getProductProviders(productId);
-		if (processIds == null)
-			return null;
-		LongPair candidate = null;
-		for (long processId : processIds) {
-			LongPair newOption = LongPair.of(processId, productId);
-			if (isBetter(productInput, candidate, newOption))
-				candidate = newOption;
-		}
-		return candidate;
-	}
-
-	private boolean isBetter(CalcExchange inputLink, LongPair candidate,
-			LongPair newOption) {
-		if (candidate == null)
-			return true;
-		if (newOption == null)
-			return false;
-		if (candidate.getFirst() == inputLink.defaultProviderId)
-			return false;
-		if (newOption.getFirst() == inputLink.defaultProviderId)
-			return true;
-		ProcessType candidateType = processTable.getType(candidate.getFirst());
-		ProcessType newOptionType = processTable.getType(newOption.getFirst());
-		if (candidateType == preferredType && newOptionType != preferredType)
-			return false;
-		return candidateType != preferredType && newOptionType == preferredType;
-	}
 }
