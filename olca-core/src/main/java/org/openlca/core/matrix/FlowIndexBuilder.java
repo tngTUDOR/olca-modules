@@ -4,7 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.matrix.dbtables.ExchangeTable;
+import org.openlca.core.matrix.dbtables.PicoExchange;
 import org.openlca.core.model.AllocationMethod;
 import org.openlca.core.model.FlowType;
 import org.slf4j.Logger;
@@ -19,31 +20,31 @@ class FlowIndexBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
-	private final MatrixCache cache;
+	private final ExchangeTable exchanges;
 	private final TechIndex productIndex;
 	private final AllocationMethod allocationMethod;
 
-	FlowIndexBuilder(MatrixCache cache, TechIndex productIndex,
+	FlowIndexBuilder(ExchangeTable exchanges, TechIndex productIndex,
 			AllocationMethod allocationMethod) {
 		this.allocationMethod = allocationMethod;
-		this.cache = cache;
+		this.exchanges = exchanges;
 		this.productIndex = productIndex;
 	}
 
 	FlowIndex build() {
 		FlowIndex index = new FlowIndex();
-		Map<Long, List<CalcExchange>> map = loadExchanges();
+		Map<Long, List<PicoExchange>> map = loadExchanges();
 		for (Long processId : productIndex.getProcessIds()) {
-			List<CalcExchange> exchanges = map.get(processId);
-			for (CalcExchange e : exchanges) {
-				if (index.contains(e.flowId))
+			List<PicoExchange> exchanges = map.get(processId);
+			for (PicoExchange e : exchanges) {
+				if (index.contains(e.flowID))
 					continue; // already indexed as flow
-				LongPair productCandidate = new LongPair(e.processId, e.flowId);
+				LongPair productCandidate = new LongPair(e.processID, e.flowID);
 				if (productIndex.contains(productCandidate))
 					continue; // the exchange is an output product
 				if (productIndex.isLinked(productCandidate))
 					continue; // the exchange is a linked input
-				if (e.input || e.flowType == FlowType.ELEMENTARY_FLOW)
+				if (e.isInput || e.flowType == FlowType.ELEMENTARY_FLOW)
 					indexFlow(e, index);
 				else if (allocationMethod == null
 						|| allocationMethod == AllocationMethod.NONE)
@@ -54,22 +55,19 @@ class FlowIndexBuilder {
 		return index;
 	}
 
-	private Map<Long, List<CalcExchange>> loadExchanges() {
+	private Map<Long, List<PicoExchange>> loadExchanges() {
 		try {
-			Map<Long, List<CalcExchange>> map = cache.getExchangeCache()
-					.getAll(productIndex.getProcessIds());
-			return map;
+			return exchanges.get(productIndex.getProcessIds());
 		} catch (Exception e) {
 			log.error("failed to load exchanges from cache", e);
 			return Collections.emptyMap();
 		}
 	}
 
-	private void indexFlow(CalcExchange e, FlowIndex index) {
-		if (e.input)
-			index.putInputFlow(e.flowId);
+	private void indexFlow(PicoExchange e, FlowIndex index) {
+		if (e.isInput)
+			index.putInputFlow(e.flowID);
 		else
-			index.putOutputFlow(e.flowId);
+			index.putOutputFlow(e.flowID);
 	}
-
 }

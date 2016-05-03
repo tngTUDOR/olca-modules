@@ -2,8 +2,10 @@ package org.openlca.core.matrix.dbtables;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.openlca.core.database.IDatabase;
@@ -30,8 +32,8 @@ public class ExchangeTable {
 		return new ExchangeTable(db, true);
 	}
 
-	public HashMap<Long, ArrayList<PicoExchange>> get(List<Long> processIDs) {
-		HashMap<Long, ArrayList<PicoExchange>> result = new HashMap<>();
+	public Map<Long, List<PicoExchange>> get(Collection<Long> processIDs) {
+		Map<Long, List<PicoExchange>> result = new HashMap<>();
 		if (processIDs == null || processIDs.isEmpty())
 			return result;
 		ArrayList<Long> querySet = new ArrayList<>();

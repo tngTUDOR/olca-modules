@@ -1,9 +1,9 @@
 package org.openlca.core.matrix;
 
-import gnu.trove.map.hash.TLongByteHashMap;
-
-import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.matrix.dbtables.ExchangeTable;
 import org.openlca.core.model.AllocationMethod;
+
+import gnu.trove.map.hash.TLongByteHashMap;
 
 /**
  * A flow index represents the flows in the intervention matrix. Thus, this
@@ -14,10 +14,9 @@ public class FlowIndex {
 	private LongIndex flowIndex = new LongIndex();
 	private TLongByteHashMap inputMap = new TLongByteHashMap();
 
-	public static FlowIndex build(MatrixCache cache, TechIndex productIndex,
+	public static FlowIndex build(ExchangeTable exchanges, TechIndex techIndex,
 			AllocationMethod allocationMethod) {
-		return new FlowIndexBuilder(cache, productIndex, allocationMethod)
-				.build();
+		return new FlowIndexBuilder(exchanges, techIndex, allocationMethod).build();
 	}
 
 	public void putInputFlow(long flowId) {
