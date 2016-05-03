@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.NativeSql;
+import org.openlca.core.model.UncertaintyType;
 
 import gnu.trove.map.hash.TLongObjectHashMap;
 
@@ -68,8 +69,12 @@ public class ExchangeTable {
 		listStr.append(')');
 		String sql = "SELECT id, f_owner, f_flow, f_default_provider, f_currency, "
 				+ "f_flow_property_factor, f_unit, resulting_amount_value, cost_value, "
-				+ "resulting_amount_formula, cost_formula, is_input, avoided_product "
-				+ "from tbl_exchanges where f_owner in " + listStr.toString();
+				+ "resulting_amount_formula, cost_formula, is_input, avoided_product ";
+		if (query.withUncertainty) {
+			sql += ", distribution_type, parameter1_value, parameter2_value, parameter3_value, "
+					+ "parameter1_formula, parameter2_formula, parameter3_formula ";
+		}
+		sql += "from tbl_exchanges where f_owner in " + listStr.toString();
 		// TODO load uncertainties if required
 		query.exec(sql, e -> {
 			ArrayList<PicoExchange> list = cache.get(e.processID);
@@ -147,9 +152,24 @@ public class ExchangeTable {
 			e.isAvoidedProduct = r.getBoolean(13);
 
 			if (withUncertainty) {
-				// TODO: get uncertainty information
+				uncertainty(r, e);
 			}
 			return e;
+		}
+
+		private void uncertainty(ResultSet r, PicoExchange e) throws Exception {
+			int type = r.getInt(14);
+			if (r.wasNull())
+				return;
+			PicoUncertainty u = new PicoUncertainty();
+			e.uncertainty = u;
+			u.uncertaintyType = UncertaintyType.values()[type];
+			u.parameter1 = r.getDouble(15);
+			u.parameter2 = r.getDouble(16);
+			u.parameter3 = r.getDouble(17);
+			u.parameter1Formula = r.getString(18);
+			u.parameter2Formula = r.getString(19);
+			u.parameter3Formula = r.getString(20);
 		}
 	}
 }
