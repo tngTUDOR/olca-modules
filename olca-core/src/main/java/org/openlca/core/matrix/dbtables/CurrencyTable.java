@@ -1,7 +1,8 @@
-package org.openlca.core.matrix;
+package org.openlca.core.matrix.dbtables;
 
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.NativeSql;
+import org.openlca.core.matrix.LongIndex;
 
 import gnu.trove.list.array.TDoubleArrayList;
 

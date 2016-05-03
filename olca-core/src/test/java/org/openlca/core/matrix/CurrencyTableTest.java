@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openlca.core.Tests;
 import org.openlca.core.database.CurrencyDao;
+import org.openlca.core.matrix.dbtables.CurrencyTable;
 import org.openlca.core.model.Currency;
 
 public class CurrencyTableTest {
