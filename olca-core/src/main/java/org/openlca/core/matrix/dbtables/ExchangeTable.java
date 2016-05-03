@@ -8,26 +8,17 @@ import java.util.function.Consumer;
 
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.NativeSql;
-import org.openlca.core.matrix.dbtables.ConversionTable;
-import org.openlca.core.matrix.dbtables.FlowTypeTable;
 
 import gnu.trove.map.hash.TLongObjectHashMap;
 
 public class ExchangeTable {
 
-	private final IDatabase db;
-	private final boolean withUncertainty;
-
-	private ConversionTable conversions;
-	private FlowTypeTable flowTypes;
+	private Query query;
 	private TLongObjectHashMap<ArrayList<PicoExchange>> cache;
 
 	private ExchangeTable(IDatabase db, boolean withUncertainty) {
-		this.db = db;
-		this.withUncertainty = withUncertainty;
+		query = new Query(db, withUncertainty);
 		this.cache = new TLongObjectHashMap<>();
-		conversions = ConversionTable.create(db);
-		flowTypes = FlowTypeTable.create(db);
 	}
 
 	public static ExchangeTable create(IDatabase db) {
@@ -80,20 +71,13 @@ public class ExchangeTable {
 				+ "resulting_amount_formula, cost_formula, is_input, avoided_product "
 				+ "from tbl_exchanges where f_owner in " + listStr.toString();
 		// TODO load uncertainties if required
-		try {
-			NativeSql.on(db).query(sql, r -> {
-				try {
-					PicoExchange e = read(r, conversions, flowTypes, withUncertainty);
-					// TODO: find list and add exchange
-
-					return true;
-				} catch (Exception e) {
-					throw new RuntimeException("failed to read exchange", e);
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException("failed to scan exchange table", e);
-		}
+		query.exec(sql, e -> {
+			ArrayList<PicoExchange> list = cache.get(e.processID);
+			if (list == null) {
+				list = new ArrayList<>();
+			}
+			list.add(e);
+		});
 	}
 
 	/**
@@ -104,54 +88,68 @@ public class ExchangeTable {
 	public static void fullScan(IDatabase db, Consumer<PicoExchange> fn) {
 		String sql = "SELECT id, f_owner, f_flow, f_default_provider, f_currency, "
 				+ "f_flow_property_factor, f_unit, resulting_amount_value, cost_value, "
-				+ "resulting_amount_formula, cost_formula, is_input, avoided_product " + "from tbl_exchanges";
-		ConversionTable conversions = ConversionTable.create(db);
-		FlowTypeTable flowTypes = FlowTypeTable.create(db);
-		try {
-			NativeSql.on(db).query(sql, r -> {
-				try {
-					PicoExchange e = read(r, conversions, flowTypes, false);
-					fn.accept(e);
-					return true;
-				} catch (Exception e) {
-					throw new RuntimeException("failed to read exchange", e);
-				}
-			});
-		} catch (Exception e) {
-			throw new RuntimeException("failed to scan exchange table", e);
-		}
+				+ "resulting_amount_formula, cost_formula, is_input, avoided_product "
+				+ "from tbl_exchanges";
+		new Query(db, false).exec(sql, fn);
 	}
 
-	private static PicoExchange read(
+	private static class Query {
 
-			ResultSet r, ConversionTable conversions, FlowTypeTable flowTypes, boolean withUncertainty
+		IDatabase db;
+		ConversionTable conversions;
+		FlowTypeTable flowTypes;
+		boolean withUncertainty;
 
-	) throws Exception {
-
-		PicoExchange e = new PicoExchange();
-
-		e.exchangeID = r.getLong(1);
-		e.processID = r.getLong(2);
-		e.flowID = r.getLong(3);
-		e.flowType = flowTypes.getType(e.flowID);
-		e.providerID = r.getLong(4);
-		e.currencyID = r.getLong(5);
-
-		long propertyID = r.getLong(6);
-		long unitID = r.getLong(7);
-		e.conversionFactor = conversions.getUnitFactor(unitID) / conversions.getPropertyFactor(propertyID);
-		e.amount = r.getDouble(8) * e.conversionFactor;
-		e.costValue = r.getDouble(9);
-
-		e.amountFormula = r.getString(10);
-		e.costFormula = r.getString(11);
-		e.isInput = r.getBoolean(12);
-		e.isAvoidedProduct = r.getBoolean(13);
-
-		if (withUncertainty) {
-			// TODO: get uncertainty information
+		Query(IDatabase db, boolean withUncertainty) {
+			this.db = db;
+			this.withUncertainty = withUncertainty;
+			conversions = ConversionTable.create(db);
+			flowTypes = FlowTypeTable.create(db);
 		}
 
-		return e;
+		void exec(String sql, Consumer<PicoExchange> fn) {
+			try {
+				NativeSql.on(db).query(sql, r -> {
+					try {
+						PicoExchange e = read(r);
+						fn.accept(e);
+						return true;
+					} catch (Exception e) {
+						throw new RuntimeException("failed to read exchange", e);
+					}
+				});
+			} catch (Exception e) {
+				throw new RuntimeException("failed to scan exchange table", e);
+			}
+		}
+
+		private PicoExchange read(ResultSet r) throws Exception {
+
+			PicoExchange e = new PicoExchange();
+
+			e.exchangeID = r.getLong(1);
+			e.processID = r.getLong(2);
+			e.flowID = r.getLong(3);
+			e.flowType = flowTypes.getType(e.flowID);
+			e.providerID = r.getLong(4);
+			e.currencyID = r.getLong(5);
+
+			long propertyID = r.getLong(6);
+			long unitID = r.getLong(7);
+			e.conversionFactor = conversions.getUnitFactor(unitID)
+					/ conversions.getPropertyFactor(propertyID);
+			e.amount = r.getDouble(8) * e.conversionFactor;
+			e.costValue = r.getDouble(9);
+
+			e.amountFormula = r.getString(10);
+			e.costFormula = r.getString(11);
+			e.isInput = r.getBoolean(12);
+			e.isAvoidedProduct = r.getBoolean(13);
+
+			if (withUncertainty) {
+				// TODO: get uncertainty information
+			}
+			return e;
+		}
 	}
 }
