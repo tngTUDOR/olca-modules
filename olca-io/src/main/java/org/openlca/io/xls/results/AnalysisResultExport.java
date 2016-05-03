@@ -129,7 +129,7 @@ public class AnalysisResultExport implements IExcelExport {
 	private void prepareProcesses() {
 		Set<ProcessDescriptor> procs = result.getProcessDescriptors();
 		processes = new ArrayList<>(procs);
-		final long refProcess = result.result.productIndex.getRefProduct().getFirst();
+		final long refProcess = result.result.productIndex.getRefFlow().getFirst();
 		Collections.sort(processes, new Comparator<ProcessDescriptor>() {
 			@Override
 			public int compare(ProcessDescriptor o1, ProcessDescriptor o2) {

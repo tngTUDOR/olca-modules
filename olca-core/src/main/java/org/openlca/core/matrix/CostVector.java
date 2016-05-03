@@ -13,10 +13,10 @@ import org.openlca.core.matrix.dbtables.CurrencyTable;
  */
 public class CostVector {
 
-	public final ProductIndex productIndex;
+	public final TechIndex productIndex;
 	public final double[] values;
 
-	CostVector(ProductIndex products, double[] values) {
+	CostVector(TechIndex products, double[] values) {
 		this.productIndex = products;
 		this.values = values;
 	}

@@ -22,7 +22,7 @@ import org.openlca.core.matrix.FlowIndex;
 import org.openlca.core.matrix.ImpactTable;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.LongIndex;
-import org.openlca.core.matrix.ProductIndex;
+import org.openlca.core.matrix.TechIndex;
 import org.openlca.core.model.AllocationMethod;
 import org.openlca.core.model.descriptors.ImpactCategoryDescriptor;
 import org.openlca.io.xls.Excel;
@@ -235,7 +235,7 @@ public class SystemExport {
 		return header;
 	}
 
-	private ExcelHeader createProductHeader(ProductIndex productIndex) {
+	private ExcelHeader createProductHeader(TechIndex productIndex) {
 		ExcelHeader header = new ExcelHeader();
 		header.setHeaders(HEADERS.PRODUCT.VALUES);
 		List<IExcelHeaderEntry> headerEntries = new ArrayList<>();
@@ -316,7 +316,7 @@ public class SystemExport {
 	}
 
 	private List<ProductInfo> mapProductIndices(ExcelHeader header,
-			ProductIndex productIndex) {
+			TechIndex productIndex) {
 		List<ProductInfo> sortedProducts = ProductInfo.getAll(conf,
 				productIndex);
 		Collections.sort(sortedProducts);

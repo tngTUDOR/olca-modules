@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.openlca.core.matrix.CalcExchange;
 import org.openlca.core.matrix.LongPair;
-import org.openlca.core.matrix.ProductIndex;
+import org.openlca.core.matrix.TechIndex;
 import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.model.FlowType;
 import org.openlca.core.model.ProcessType;
@@ -38,15 +38,15 @@ public class ProductIndexCutoffBuilder implements IProductIndexBuilder {
 	}
 
 	@Override
-	public ProductIndex build(LongPair refProduct) {
+	public TechIndex build(LongPair refProduct) {
 		return build(refProduct, 1.0);
 	}
 
 	@Override
-	public ProductIndex build(LongPair refProduct, double demand) {
+	public TechIndex build(LongPair refProduct, double demand) {
 		log.trace("build product index for {} with cutoff=", refProduct,
 				cutoff);
-		ProductIndex index = new ProductIndex(refProduct);
+		TechIndex index = new TechIndex(refProduct);
 		index.setDemand(demand);
 		Graph g = new Graph(refProduct, demand);
 		while (!g.next.isEmpty())
@@ -56,7 +56,7 @@ public class ProductIndexCutoffBuilder implements IProductIndexBuilder {
 		return index;
 	}
 
-	private void fillIndex(Graph g, ProductIndex index) {
+	private void fillIndex(Graph g, TechIndex index) {
 		for (Node node : g.nodes.values()) {
 			if (node.state != NodeState.FOLLOWED)
 				continue;
