@@ -16,7 +16,6 @@ public final class MatrixCache {
 	private final IDatabase database;
 
 	private ConversionTable conversionTable;
-	private ProcessTable processTable;
 
 	private LoadingCache<Long, List<CalcImpactFactor>> impactCache;
 
@@ -33,7 +32,6 @@ public final class MatrixCache {
 		this.lazy = lazy;
 		if (!lazy) {
 			conversionTable = ConversionTable.create(database);
-			processTable = ProcessTable.create(database);
 			impactCache = ImpactFactorCache.create(database, conversionTable);
 		}
 	}
@@ -48,12 +46,6 @@ public final class MatrixCache {
 		return conversionTable;
 	}
 
-	public ProcessTable getProcessTable() {
-		if (processTable == null)
-			processTable = ProcessTable.create(database);
-		return processTable;
-	}
-
 	public LoadingCache<Long, List<CalcImpactFactor>> getImpactCache() {
 		if (impactCache == null)
 			impactCache = ImpactFactorCache.create(database,
@@ -64,8 +56,6 @@ public final class MatrixCache {
 	public synchronized void evictAll() {
 		if (conversionTable != null)
 			conversionTable.reload();
-		if (processTable != null)
-			processTable.reload();
 		if (impactCache != null)
 			impactCache.invalidateAll();
 	}
@@ -87,9 +77,6 @@ public final class MatrixCache {
 		case IMPACT_METHOD:
 			if (impactCache != null)
 				impactCache.invalidateAll();
-			break;
-		case PROCESS:
-			evictProcess(id);
 			break;
 		case UNIT:
 			baseEviction();
@@ -114,17 +101,6 @@ public final class MatrixCache {
 		}
 	}
 
-	private void evictProcess(long id) {
-		reloadProcessTable();
-	}
-
-	private void reloadProcessTable() {
-		if (lazy)
-			processTable = null;
-		else
-			processTable.reload();
-	}
-
 	public synchronized void registerNew(ModelType type, long id) {
 		if (type == null)
 			return;
@@ -134,9 +110,6 @@ public final class MatrixCache {
 			break;
 		case FLOW_PROPERTY:
 			baseEviction();
-			break;
-		case PROCESS:
-			reloadProcessTable();
 			break;
 		case UNIT:
 			baseEviction();
