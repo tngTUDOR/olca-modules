@@ -1,26 +1,20 @@
 package org.openlca.core.matrix;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.database.IDatabase;
+import org.openlca.core.matrix.dbtables.AllocationTable;
 import org.openlca.core.matrix.dbtables.PicoAllocationFactor;
 import org.openlca.core.matrix.dbtables.PicoExchange;
 import org.openlca.core.model.AllocationMethod;
 import org.openlca.core.model.FlowType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import gnu.trove.impl.Constants;
 import gnu.trove.map.hash.TLongDoubleHashMap;
 
 class AllocationIndex {
 
-	private MatrixCache cache;
-	private TechIndex productIndex;
+	private AllocationTable table;
 	private AllocationMethod method;
 
 	/**
@@ -36,32 +30,18 @@ class AllocationIndex {
 	private HashMap<LongPair, TLongDoubleHashMap> exchangeFactors;
 
 	public static AllocationIndex create(TechIndex productIndex,
-			AllocationMethod method, MatrixCache cache) {
-		return new AllocationIndex(productIndex, method, cache);
+			AllocationMethod method, IDatabase db) {
+		return new AllocationIndex(productIndex, method, db);
 	}
 
 	private AllocationIndex(TechIndex productIndex, AllocationMethod method,
-			MatrixCache cache) {
+			IDatabase db) {
 		this.method = method;
-		this.productIndex = productIndex;
-		this.cache = cache;
-		List<PicoAllocationFactor> factors = loadFactors();
-		for (PicoAllocationFactor factor : factors)
-			index(factor);
-	}
-
-	private List<PicoAllocationFactor> loadFactors() {
-		try {
-			List<PicoAllocationFactor> factors = new ArrayList<>();
-			Map<Long, List<PicoAllocationFactor>> factorMap = cache
-					.getAllocationCache().getAll(productIndex.getProcessIds());
-			for (List<PicoAllocationFactor> list : factorMap.values())
-				factors.addAll(list);
-			return factors;
-		} catch (Exception e) {
-			Logger log = LoggerFactory.getLogger(getClass());
-			log.error("failed to load allocation factors from cache", e);
-			return Collections.emptyList();
+		AllocationTable table = AllocationTable.create(db);
+		for (Long processID : productIndex.getProcessIds()) {
+			for (PicoAllocationFactor f : table.get(processID)) {
+				index(f);
+			}
 		}
 	}
 
@@ -70,8 +50,7 @@ class AllocationIndex {
 				factor.productID);
 		AllocationMethod _method = this.method;
 		if (this.method == AllocationMethod.USE_DEFAULT)
-			_method = cache.getProcessTable().getDefaultAllocationMethod(
-					factor.processID);
+			_method = table.getDefaultMethod(factor.processID);
 		if (_method == null)
 			return;
 		switch (_method) {
@@ -126,8 +105,7 @@ class AllocationIndex {
 						// of waste-flows
 		AllocationMethod _method = this.method;
 		if (this.method == AllocationMethod.USE_DEFAULT)
-			_method = cache.getProcessTable().getDefaultAllocationMethod(
-					processProduct.getFirst());
+			_method = table.getDefaultMethod(processProduct.getFirst());
 		if (_method == null)
 			return 1d;
 		switch (_method) {

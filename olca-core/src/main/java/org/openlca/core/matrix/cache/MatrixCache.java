@@ -5,7 +5,6 @@ import java.util.List;
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.matrix.CalcImpactFactor;
 import org.openlca.core.matrix.dbtables.ConversionTable;
-import org.openlca.core.matrix.dbtables.PicoAllocationFactor;
 import org.openlca.core.model.ModelType;
 
 import com.google.common.cache.LoadingCache;
@@ -19,7 +18,6 @@ public final class MatrixCache {
 	private ConversionTable conversionTable;
 	private ProcessTable processTable;
 
-	private LoadingCache<Long, List<PicoAllocationFactor>> allocationCache;
 	private LoadingCache<Long, List<CalcImpactFactor>> impactCache;
 
 	public static MatrixCache createEager(IDatabase database) {
@@ -36,7 +34,6 @@ public final class MatrixCache {
 		if (!lazy) {
 			conversionTable = ConversionTable.create(database);
 			processTable = ProcessTable.create(database);
-			allocationCache = AllocationCache.create(database);
 			impactCache = ImpactFactorCache.create(database, conversionTable);
 		}
 	}
@@ -57,12 +54,6 @@ public final class MatrixCache {
 		return processTable;
 	}
 
-	public LoadingCache<Long, List<PicoAllocationFactor>> getAllocationCache() {
-		if (allocationCache == null)
-			allocationCache = AllocationCache.create(database);
-		return allocationCache;
-	}
-
 	public LoadingCache<Long, List<CalcImpactFactor>> getImpactCache() {
 		if (impactCache == null)
 			impactCache = ImpactFactorCache.create(database,
@@ -75,8 +66,6 @@ public final class MatrixCache {
 			conversionTable.reload();
 		if (processTable != null)
 			processTable.reload();
-		if (allocationCache != null)
-			allocationCache.invalidateAll();
 		if (impactCache != null)
 			impactCache.invalidateAll();
 	}
@@ -127,8 +116,6 @@ public final class MatrixCache {
 
 	private void evictProcess(long id) {
 		reloadProcessTable();
-		if (allocationCache != null)
-			allocationCache.invalidate(id);
 	}
 
 	private void reloadProcessTable() {

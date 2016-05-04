@@ -12,28 +12,58 @@ import org.openlca.core.model.AllocationMethod;
 import gnu.trove.map.hash.TLongObjectHashMap;
 
 /**
- * Reads and caches all allocation factors from the database.
+ * Reads and caches all allocation factors and default allocation methods of the
+ * processes in the database.
  */
 public class AllocationTable {
 
-	private TLongObjectHashMap<List<PicoAllocationFactor>> map;
+	private TLongObjectHashMap<List<PicoAllocationFactor>> factors;
+	private final TLongObjectHashMap<AllocationMethod> methods;
 
 	private AllocationTable() {
-		map = new TLongObjectHashMap<>();
+		factors = new TLongObjectHashMap<>();
+		methods = new TLongObjectHashMap<>();
 	}
 
 	public static AllocationTable create(IDatabase db) {
 		AllocationTable table = new AllocationTable();
-		table.init(db);
+		table.initMethods(db);
+		table.initFactors(db);
 		return table;
 	}
 
-	private void init(IDatabase db) {
+	private void initMethods(IDatabase db) {
+		String sql = "select id, default_allocation_method from tbl_processes";
+		try {
+			NativeSql.on(db).query(sql, r -> {
+				addMethod(r);
+				return true;
+			});
+		} catch (Exception e) {
+			String m = "failed to get default allocation methods";
+			throw new RuntimeException(m, e);
+		}
+	}
+
+	private void addMethod(ResultSet r) {
+		try {
+			long id = r.getLong(1);
+			String m = r.getString(2);
+			if (m == null)
+				return;
+			methods.put(id, AllocationMethod.valueOf(m));
+		} catch (Exception e) {
+			String m = "failed to get process method";
+			throw new RuntimeException(m, e);
+		}
+	}
+
+	private void initFactors(IDatabase db) {
 		String sql = "select allocation_type, f_process, f_product, "
 				+ "f_exchange, value  from tbl_allocation_factors";
 		try {
 			NativeSql.on(db).query(sql, r -> {
-				add(r);
+				addFactor(r);
 				return true;
 			});
 		} catch (Exception e) {
@@ -42,13 +72,13 @@ public class AllocationTable {
 		}
 	}
 
-	private void add(ResultSet r) {
+	private void addFactor(ResultSet r) {
 		try {
 			PicoAllocationFactor f = factor(r);
-			List<PicoAllocationFactor> list = map.get(f.processID);
+			List<PicoAllocationFactor> list = factors.get(f.processID);
 			if (list == null) {
 				list = new ArrayList<>();
-				map.put(f.processID, list);
+				factors.put(f.processID, list);
 			}
 			list.add(f);
 		} catch (Exception e) {
@@ -72,7 +102,13 @@ public class AllocationTable {
 
 	/** Returns all allocation factors for the given process. */
 	public List<PicoAllocationFactor> get(long processID) {
-		List<PicoAllocationFactor> list = map.get(processID);
+		List<PicoAllocationFactor> list = factors.get(processID);
 		return list != null ? list : Collections.emptyList();
+	}
+
+	/** Returns the default allocation method for the given process. */
+	public AllocationMethod getDefaultMethod(long processID) {
+		AllocationMethod m = methods.get(processID);
+		return m != null ? m : AllocationMethod.NONE;
 	}
 }
