@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 class InventoryBuilder {
 
-	private final MatrixCache cache;
 	private final TechIndex productIndex;
 	private final AllocationMethod allocationMethod;
 
@@ -22,7 +21,6 @@ class InventoryBuilder {
 
 	InventoryBuilder(MatrixCache matrixCache, TechIndex productIndex,
 			AllocationMethod allocationMethod) {
-		this.cache = matrixCache;
 		this.productIndex = productIndex;
 		this.allocationMethod = allocationMethod;
 	}

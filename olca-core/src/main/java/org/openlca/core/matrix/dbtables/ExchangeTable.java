@@ -165,7 +165,7 @@ public class ExchangeTable {
 				return;
 			PicoUncertainty u = new PicoUncertainty();
 			e.uncertainty = u;
-			u.uncertaintyType = UncertaintyType.values()[type];
+			u.type = UncertaintyType.values()[type];
 			u.parameter1 = r.getDouble(15);
 			u.parameter2 = r.getDouble(16);
 			u.parameter3 = r.getDouble(17);

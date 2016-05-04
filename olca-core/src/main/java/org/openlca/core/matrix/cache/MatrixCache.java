@@ -3,9 +3,9 @@ package org.openlca.core.matrix.cache;
 import java.util.List;
 
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.matrix.CalcAllocationFactor;
 import org.openlca.core.matrix.CalcImpactFactor;
 import org.openlca.core.matrix.dbtables.ConversionTable;
+import org.openlca.core.matrix.dbtables.PicoAllocationFactor;
 import org.openlca.core.model.ModelType;
 
 import com.google.common.cache.LoadingCache;
@@ -19,7 +19,7 @@ public final class MatrixCache {
 	private ConversionTable conversionTable;
 	private ProcessTable processTable;
 
-	private LoadingCache<Long, List<CalcAllocationFactor>> allocationCache;
+	private LoadingCache<Long, List<PicoAllocationFactor>> allocationCache;
 	private LoadingCache<Long, List<CalcImpactFactor>> impactCache;
 
 	public static MatrixCache createEager(IDatabase database) {
@@ -57,7 +57,7 @@ public final class MatrixCache {
 		return processTable;
 	}
 
-	public LoadingCache<Long, List<CalcAllocationFactor>> getAllocationCache() {
+	public LoadingCache<Long, List<PicoAllocationFactor>> getAllocationCache() {
 		if (allocationCache == null)
 			allocationCache = AllocationCache.create(database);
 		return allocationCache;

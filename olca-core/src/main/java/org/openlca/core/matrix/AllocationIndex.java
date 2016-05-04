@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.matrix.dbtables.PicoAllocationFactor;
 import org.openlca.core.matrix.dbtables.PicoExchange;
 import org.openlca.core.model.AllocationMethod;
 import org.openlca.core.model.FlowType;
@@ -44,17 +45,17 @@ class AllocationIndex {
 		this.method = method;
 		this.productIndex = productIndex;
 		this.cache = cache;
-		List<CalcAllocationFactor> factors = loadFactors();
-		for (CalcAllocationFactor factor : factors)
+		List<PicoAllocationFactor> factors = loadFactors();
+		for (PicoAllocationFactor factor : factors)
 			index(factor);
 	}
 
-	private List<CalcAllocationFactor> loadFactors() {
+	private List<PicoAllocationFactor> loadFactors() {
 		try {
-			List<CalcAllocationFactor> factors = new ArrayList<>();
-			Map<Long, List<CalcAllocationFactor>> factorMap = cache
+			List<PicoAllocationFactor> factors = new ArrayList<>();
+			Map<Long, List<PicoAllocationFactor>> factorMap = cache
 					.getAllocationCache().getAll(productIndex.getProcessIds());
-			for (List<CalcAllocationFactor> list : factorMap.values())
+			for (List<PicoAllocationFactor> list : factorMap.values())
 				factors.addAll(list);
 			return factors;
 		} catch (Exception e) {
@@ -64,13 +65,13 @@ class AllocationIndex {
 		}
 	}
 
-	private void index(CalcAllocationFactor factor) {
-		LongPair processProduct = new LongPair(factor.getProcessId(),
-				factor.getProductId());
+	private void index(PicoAllocationFactor factor) {
+		LongPair processProduct = new LongPair(factor.processID,
+				factor.productID);
 		AllocationMethod _method = this.method;
 		if (this.method == AllocationMethod.USE_DEFAULT)
 			_method = cache.getProcessTable().getDefaultAllocationMethod(
-					factor.getProcessId());
+					factor.processID);
 		if (_method == null)
 			return;
 		switch (_method) {
@@ -89,9 +90,9 @@ class AllocationIndex {
 	}
 
 	private void tryIndexCausal(LongPair processProduct,
-			CalcAllocationFactor factor) {
-		if (factor.getMethod() != AllocationMethod.CAUSAL
-				|| factor.getExchangeId() == null)
+			PicoAllocationFactor factor) {
+		if (factor.method != AllocationMethod.CAUSAL
+				|| factor.exchangeID == null)
 			return;
 		if (exchangeFactors == null)
 			exchangeFactors = new HashMap<>();
@@ -103,19 +104,19 @@ class AllocationIndex {
 					Constants.DEFAULT_LONG_NO_ENTRY_VALUE, 1d);
 			exchangeFactors.put(processProduct, map);
 		}
-		map.put(factor.getExchangeId(), factor.getValue());
+		map.put(factor.exchangeID, factor.value);
 	}
 
 	private void tryIndexForProduct(LongPair processProduct,
-			CalcAllocationFactor factor, AllocationMethod method) {
-		if (factor.getMethod() != method)
+			PicoAllocationFactor factor, AllocationMethod method) {
+		if (factor.method != method)
 			return;
 		if (method != AllocationMethod.ECONOMIC
 				&& method != AllocationMethod.PHYSICAL)
 			return;
 		if (productFactors == null)
 			productFactors = new HashMap<>();
-		productFactors.put(processProduct, factor.getValue());
+		productFactors.put(processProduct, factor.value);
 	}
 
 	public double getFactor(LongPair processProduct,

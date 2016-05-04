@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.matrix.CalcAllocationFactor;
+import org.openlca.core.matrix.dbtables.PicoAllocationFactor;
 import org.openlca.core.model.AllocationMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ import com.google.common.cache.LoadingCache;
  */
 class AllocationCache {
 
-	public static LoadingCache<Long, List<CalcAllocationFactor>> create(
+	public static LoadingCache<Long, List<PicoAllocationFactor>> create(
 			IDatabase database) {
 		return CacheBuilder.newBuilder().build(new FactorLoader(database));
 	}
@@ -34,7 +34,7 @@ class AllocationCache {
 	 * Loads all allocation factors for a process from the database.
 	 */
 	private static class FactorLoader extends
-			CacheLoader<Long, List<CalcAllocationFactor>> {
+			CacheLoader<Long, List<PicoAllocationFactor>> {
 
 		private Logger log = LoggerFactory.getLogger(getClass());
 		private IDatabase database;
@@ -44,16 +44,16 @@ class AllocationCache {
 		}
 
 		@Override
-		public List<CalcAllocationFactor> load(Long processId) throws Exception {
+		public List<PicoAllocationFactor> load(Long processId) throws Exception {
 			log.trace("load allocation factors for process {}", processId);
 			try (Connection con = database.createConnection()) {
 				String sql = "select * from tbl_allocation_factors where f_process = "
 						+ processId;
 				Statement stmt = con.createStatement();
 				ResultSet rs = stmt.executeQuery(sql);
-				ArrayList<CalcAllocationFactor> factors = new ArrayList<>();
+				ArrayList<PicoAllocationFactor> factors = new ArrayList<>();
 				while (rs.next()) {
-					CalcAllocationFactor factor = fetchFactor(rs);
+					PicoAllocationFactor factor = fetchFactor(rs);
 					factors.add(factor);
 				}
 				stmt.close();
@@ -67,7 +67,7 @@ class AllocationCache {
 		}
 
 		@Override
-		public Map<Long, List<CalcAllocationFactor>> loadAll(
+		public Map<Long, List<PicoAllocationFactor>> loadAll(
 				Iterable<? extends Long> processIds) throws Exception {
 			log.trace("load allocation factors");
 			try (Connection con = database.createConnection()) {
@@ -75,10 +75,10 @@ class AllocationCache {
 						+ CacheUtil.asSql(processIds);
 				Statement stmt = con.createStatement();
 				ResultSet rs = stmt.executeQuery(sql);
-				Map<Long, List<CalcAllocationFactor>> map = new HashMap<>();
+				Map<Long, List<PicoAllocationFactor>> map = new HashMap<>();
 				while (rs.next()) {
-					CalcAllocationFactor factor = fetchFactor(rs);
-					CacheUtil.addListEntry(map, factor, factor.getProcessId());
+					PicoAllocationFactor factor = fetchFactor(rs);
+					CacheUtil.addListEntry(map, factor, factor.processID);
 				}
 				stmt.close();
 				rs.close();
@@ -90,16 +90,16 @@ class AllocationCache {
 			}
 		}
 
-		private CalcAllocationFactor fetchFactor(ResultSet rs) throws Exception {
-			CalcAllocationFactor factor = new CalcAllocationFactor();
+		private PicoAllocationFactor fetchFactor(ResultSet rs) throws Exception {
+			PicoAllocationFactor factor = new PicoAllocationFactor();
 			String typeStr = rs.getString("allocation_type");
-			factor.setMethod(AllocationMethod.valueOf(typeStr));
-			factor.setProcessId(rs.getLong("f_process"));
-			factor.setProductId(rs.getLong("f_product"));
-			factor.setValue(rs.getDouble("value"));
+			factor.method = AllocationMethod.valueOf(typeStr);
+			factor.processID = rs.getLong("f_process");
+			factor.productID = rs.getLong("f_product");
+			factor.value = rs.getDouble("value");
 			long exchangeId = rs.getLong("f_exchange");
 			if (!rs.wasNull())
-				factor.setExchangeId(exchangeId);
+				factor.exchangeID = exchangeId;
 			return factor;
 		}
 

@@ -1,6 +1,8 @@
 package org.openlca.core.matrix;
 
 import org.openlca.core.math.NumberGenerator;
+import org.openlca.core.matrix.dbtables.PicoExchange;
+import org.openlca.core.matrix.dbtables.PicoUncertainty;
 import org.openlca.core.model.FlowType;
 import org.openlca.core.model.UncertaintyType;
 import org.openlca.expressions.FormulaInterpreter;
@@ -11,11 +13,11 @@ import org.slf4j.LoggerFactory;
 
 class ExchangeCell {
 
-	final CalcExchange exchange;
+	final PicoExchange exchange;
 	public double allocationFactor = 1d;
 	private NumberGenerator generator;
 
-	ExchangeCell(CalcExchange exchange) {
+	ExchangeCell(PicoExchange exchange) {
 		this.exchange = exchange;
 	}
 
@@ -23,46 +25,48 @@ class ExchangeCell {
 		if (interpreter == null)
 			return;
 		try {
-			Scope scope = interpreter.getScope(exchange.processId);
+			Scope scope = interpreter.getScope(exchange.processID);
 			if (scope == null)
 				scope = interpreter.getGlobalScope();
 			tryEval(scope);
 		} catch (Exception e) {
 			Logger log = LoggerFactory.getLogger(getClass());
 			log.error("Formula evaluation failed, exchange "
-					+ exchange.exchangeId, e);
+					+ exchange.exchangeID, e);
 		}
 	}
 
 	private void tryEval(Scope scope) throws InterpreterException {
 		if (exchange.amountFormula != null) {
 			double v = scope.eval(exchange.amountFormula);
-			exchange.amount = v;
-		}
-		if (exchange.parameter1Formula != null) {
-			double v = scope.eval(exchange.parameter1Formula);
-			exchange.parameter1 = v;
-		}
-		if (exchange.parameter2Formula != null) {
-			double v = scope.eval(exchange.parameter2Formula);
-			exchange.parameter2 = v;
-		}
-		if (exchange.parameter3Formula != null) {
-			double v = scope.eval(exchange.parameter3Formula);
-			exchange.parameter3 = v;
+			exchange.amount = v * exchange.conversionFactor;
 		}
 		if (exchange.costFormula != null) {
 			double v = scope.eval(exchange.costFormula);
 			exchange.costValue = v;
+		}
+		PicoUncertainty u = exchange.uncertainty;
+		if (u == null)
+			return;
+		if (u.parameter1Formula != null) {
+			double v = scope.eval(u.parameter1Formula);
+			u.parameter1 = v;
+		}
+		if (u.parameter2Formula != null) {
+			double v = scope.eval(u.parameter2Formula);
+			u.parameter2 = v;
+		}
+		if (u.parameter3Formula != null) {
+			double v = scope.eval(u.parameter3Formula);
+			u.parameter3 = v;
 		}
 	}
 
 	double getMatrixValue() {
 		if (exchange == null)
 			return 0;
-		double amount = exchange.amount * allocationFactor
-				* exchange.conversionFactor;
-		if (exchange.input && !exchange.avoidedProduct)
+		double amount = exchange.amount * allocationFactor;
+		if (exchange.isInput && !exchange.isAvoidedProduct)
 			return -amount;
 		else
 			return amount;
@@ -72,41 +76,40 @@ class ExchangeCell {
 		if (exchange == null)
 			return 0;
 		double val = exchange.costValue * allocationFactor;
-		if (exchange.flowType == FlowType.PRODUCT_FLOW && !exchange.input)
+		if (exchange.flowType == FlowType.PRODUCT_FLOW && !exchange.isInput)
 			return -val;
 		else
 			return val;
 	}
 
 	double getNextSimulationValue() {
-		UncertaintyType type = exchange.uncertaintyType;
-		if (type == null || type == UncertaintyType.NONE)
+		PicoUncertainty u = exchange.uncertainty;
+		if (u == null || u.type == null || u.type == UncertaintyType.NONE)
 			return getMatrixValue();
 		if (generator == null)
-			generator = createGenerator(type);
+			generator = createGenerator(u);
 		double amount = generator.next() * allocationFactor
 				* exchange.conversionFactor;
-		if (exchange.input && !exchange.avoidedProduct)
+		if (exchange.isInput && !exchange.isAvoidedProduct)
 			return -amount;
 		else
 			return amount;
 	}
 
-	private NumberGenerator createGenerator(UncertaintyType type) {
-		final CalcExchange e = exchange;
-		switch (type) {
+	private NumberGenerator createGenerator(PicoUncertainty u) {
+		final PicoExchange e = exchange;
+		switch (u.type) {
 		case LOG_NORMAL:
-			return NumberGenerator.logNormal(e.parameter1, e.parameter2);
+			return NumberGenerator.logNormal(u.parameter1, u.parameter2);
 		case NORMAL:
-			return NumberGenerator.normal(e.parameter1, e.parameter2);
+			return NumberGenerator.normal(u.parameter1, u.parameter2);
 		case TRIANGLE:
-			return NumberGenerator.triangular(e.parameter1,
-					e.parameter2, e.parameter3);
+			return NumberGenerator.triangular(u.parameter1,
+					u.parameter2, u.parameter3);
 		case UNIFORM:
-			return NumberGenerator.uniform(e.parameter1, e.parameter2);
+			return NumberGenerator.uniform(u.parameter1, u.parameter2);
 		default:
 			return NumberGenerator.discrete(e.amount);
 		}
 	}
-
 }
