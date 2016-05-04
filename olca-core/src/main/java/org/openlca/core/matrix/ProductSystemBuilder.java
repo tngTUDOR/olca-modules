@@ -13,8 +13,8 @@ import org.openlca.core.database.NativeSql;
 import org.openlca.core.database.NativeSql.BatchInsertHandler;
 import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.matrix.product.index.IProductIndexBuilder;
-import org.openlca.core.matrix.product.index.ProductIndexBuilder;
-import org.openlca.core.matrix.product.index.ProductIndexCutoffBuilder;
+import org.openlca.core.matrix.product.index.TechIndexBuilder;
+import org.openlca.core.matrix.product.index.TechIndexCutoffBuilder;
 import org.openlca.core.model.Flow;
 import org.openlca.core.model.Process;
 import org.openlca.core.model.ProcessLink;
@@ -85,9 +85,9 @@ public class ProductSystemBuilder  {
 
 	private IProductIndexBuilder getProductIndexBuilder() {
 		if(cutoff == null || cutoff == 0)
-			return new ProductIndexBuilder(matrixCache);
+			return new TechIndexBuilder(matrixCache);
 		else
-			return new ProductIndexCutoffBuilder(matrixCache, cutoff);
+			return new TechIndexCutoffBuilder(matrixCache, cutoff);
 	}
 
 	private void addLinksAndProcesses(ProductSystem system, TechIndex index) {

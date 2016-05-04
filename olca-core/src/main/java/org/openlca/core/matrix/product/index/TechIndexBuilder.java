@@ -16,13 +16,13 @@ import org.openlca.core.model.FlowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProductIndexBuilder implements IProductIndexBuilder {
+public class TechIndexBuilder implements IProductIndexBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 	private ExchangeTable exchanges;
 	private ProviderTable providers;
 
-	public ProductIndexBuilder(ExchangeTable exchanges, ProviderTable providers) {
+	public TechIndexBuilder(ExchangeTable exchanges, ProviderTable providers) {
 		this.exchanges = exchanges;
 		this.providers = providers;
 	}

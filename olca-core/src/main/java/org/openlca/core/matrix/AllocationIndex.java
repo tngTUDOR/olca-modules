@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.matrix.dbtables.PicoExchange;
 import org.openlca.core.model.AllocationMethod;
 import org.openlca.core.model.FlowType;
 import org.slf4j.Logger;
@@ -118,12 +119,10 @@ class AllocationIndex {
 	}
 
 	public double getFactor(LongPair processProduct,
-			CalcExchange calcExchange) {
-		if (!calcExchange.input
-				&& calcExchange.flowType == FlowType.PRODUCT_FLOW)
+			PicoExchange calcExchange) {
+		if (!calcExchange.isInput && calcExchange.flowType == FlowType.PRODUCT_FLOW)
 			return 1d; // TODO: this changes when we allow input-modelling
-						// of
-						// waste-flows
+						// of waste-flows
 		AllocationMethod _method = this.method;
 		if (this.method == AllocationMethod.USE_DEFAULT)
 			_method = cache.getProcessTable().getDefaultAllocationMethod(
@@ -152,14 +151,13 @@ class AllocationIndex {
 			return factor;
 	}
 
-	private double fetchCausal(LongPair processProduct,
-			CalcExchange calcExchange) {
+	private double fetchCausal(LongPair processProduct, PicoExchange e) {
 		if (exchangeFactors == null)
 			return 1d;
 		TLongDoubleHashMap map = exchangeFactors.get(processProduct);
 		if (map == null)
 			return 1d;
-		return map.get(calcExchange.exchangeId); // default is 1.0
+		return map.get(e.exchangeID); // default is 1.0
 	}
 
 }

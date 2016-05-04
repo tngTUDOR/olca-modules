@@ -17,7 +17,7 @@ import org.openlca.core.model.FlowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProductIndexCutoffBuilder implements IProductIndexBuilder {
+public class TechIndexCutoffBuilder implements IProductIndexBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -25,7 +25,7 @@ public class ProductIndexCutoffBuilder implements IProductIndexBuilder {
 	private ProviderTable providers;
 	private double cutoff;
 
-	public ProductIndexCutoffBuilder(ExchangeTable exchanges, ProviderTable providers, double cutoff) {
+	public TechIndexCutoffBuilder(ExchangeTable exchanges, ProviderTable providers, double cutoff) {
 		this.exchanges = exchanges;
 		this.providers = providers;
 		this.cutoff = cutoff;

@@ -9,18 +9,17 @@ import gnu.trove.map.hash.TLongDoubleHashMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 
 /**
- * The provider table scans the exchanges in the database and stores
- * for product and waste flows the possible process and exchange IDs
- * of processes that produce the respective product (= output) or 
- * treat the respective waste (= input). The table is then used to
- * link processes in product systems automatically.
+ * The provider table scans the exchanges in the database and stores for product
+ * and waste flows the possible process and exchange IDs of processes that
+ * produce the respective product (= output) or treat the respective waste (=
+ * input). The table is then used to link processes in product systems
+ * automatically.
  *
- * If there are multiple alternatives available for possible providers 
- * of a product or waste treatment these alternatives are stored in a
- * sorted array where the best alternative is at the first position. We
- * need to store all alternatives because the user can set default 
- * providers in exchanges which may differ from best alternative selected
- * by this class.   
+ * If there are multiple alternatives available for possible providers of a
+ * product or waste treatment these alternatives are stored in a sorted array
+ * where the best alternative is at the first position. We need to store all
+ * alternatives because the user can set default providers in exchanges which
+ * may differ from best alternative selected by this class.
  */
 public class ProviderTable {
 
@@ -37,7 +36,7 @@ public class ProviderTable {
 	/**
 	 * Returns a pair of processID and exchangeID of a product output or waste
 	 * input for the given exchange. If a default provider is set for the given
-	 * exchange it will return this provider. It returns null if no provider 
+	 * exchange it will return this provider. It returns null if no provider
 	 * could be found.
 	 */
 	public LongPair get(PicoExchange exchange) {
@@ -46,13 +45,13 @@ public class ProviderTable {
 		LongPair[] providers = map.get(exchange.flowID);
 		if (providers == null)
 			return null;
-		if (providers.lenght() == 1 || exchange.defaultProviderID == 0)
+		if (providers.length == 1 || exchange.providerID == 0)
 			return providers[0];
 		for (LongPair provider : providers) {
-			if (provider.getFirst() == exchange.defaultProviderID)
+			if (provider.getFirst() == exchange.providerID)
 				return provider;
 		}
-		return return providers[0];
+		return providers[0];
 	}
 
 	private static class Builder {
@@ -80,24 +79,24 @@ public class ProviderTable {
 			});
 			return new ProviderTable(map);
 		}
-		
-		private add(PicoExchange e) {
+
+		private void add(PicoExchange e) {
 			LongPair newProvider = LongPair.of(e.processID, e.exchangeID);
 			LongPair[] providers = map.get(e.flowID);
 			if (providers == null) {
-				map.put(e.flowID, new LongPair[] {newProvider});
+				map.put(e.flowID, new LongPair[] { newProvider });
 				amounts.put(e.flowID, e.amount);
 				return;
 			}
-			int n = providers.lenght();
+			int n = providers.length;
 			LongPair bestOld = providers[0];
-			LongPair newProviders = new LongPair[n + 1];
-			if better(e, bestOld) {
-				Arrays.copy(providers, 0, newProviders, 1, n);
+			LongPair[] newProviders = new LongPair[n + 1];
+			if (better(e, bestOld)) {
+				System.arraycopy(providers, 0, newProviders, 1, n);
 				newProviders[0] = newProvider;
 				amounts.put(e.flowID, e.amount);
 			} else {
-				Arrays.copy(providers, 0, newProviders, 0, n);
+				System.arraycopy(providers, 0, newProviders, 0, n);
 				newProviders[n] = newProvider;
 			}
 			map.put(e.flowID, newProviders);
