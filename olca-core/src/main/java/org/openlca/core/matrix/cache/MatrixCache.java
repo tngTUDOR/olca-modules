@@ -3,7 +3,7 @@ package org.openlca.core.matrix.cache;
 import java.util.List;
 
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.matrix.CalcImpactFactor;
+import org.openlca.core.matrix.PicoImpactFactor;
 import org.openlca.core.matrix.dbtables.ConversionTable;
 import org.openlca.core.model.ModelType;
 
@@ -17,7 +17,7 @@ public final class MatrixCache {
 
 	private ConversionTable conversionTable;
 
-	private LoadingCache<Long, List<CalcImpactFactor>> impactCache;
+	private LoadingCache<Long, List<PicoImpactFactor>> impactCache;
 
 	public static MatrixCache createEager(IDatabase database) {
 		return new MatrixCache(database, false);
@@ -46,7 +46,7 @@ public final class MatrixCache {
 		return conversionTable;
 	}
 
-	public LoadingCache<Long, List<CalcImpactFactor>> getImpactCache() {
+	public LoadingCache<Long, List<PicoImpactFactor>> getImpactCache() {
 		if (impactCache == null)
 			impactCache = ImpactFactorCache.create(database,
 					getConversionTable());

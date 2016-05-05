@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.matrix.CalcImpactFactor;
+import org.openlca.core.matrix.PicoImpactFactor;
 import org.openlca.core.matrix.dbtables.ConversionTable;
 import org.openlca.core.model.UncertaintyType;
 import org.slf4j.Logger;
@@ -22,14 +22,14 @@ import com.google.common.cache.LoadingCache;
 
 public class ImpactFactorCache {
 
-	static LoadingCache<Long, List<CalcImpactFactor>> create(
+	static LoadingCache<Long, List<PicoImpactFactor>> create(
 			IDatabase database, ConversionTable conversionTable) {
 		return CacheBuilder.newBuilder().build(
 				new FactorLoader(database, conversionTable));
 	}
 
 	private static class FactorLoader extends
-			CacheLoader<Long, List<CalcImpactFactor>> {
+			CacheLoader<Long, List<PicoImpactFactor>> {
 
 		private Logger log = LoggerFactory.getLogger(getClass());
 		private IDatabase database;
@@ -41,16 +41,16 @@ public class ImpactFactorCache {
 		}
 
 		@Override
-		public List<CalcImpactFactor> load(Long impactId) throws Exception {
+		public List<PicoImpactFactor> load(Long impactId) throws Exception {
 			log.trace("load impact factors for category {}", impactId);
 			try (Connection con = database.createConnection()) {
 				String query = "select * from tbl_impact_factors where f_impact_category = "
 						+ impactId;
 				Statement statement = con.createStatement();
 				ResultSet result = statement.executeQuery(query);
-				List<CalcImpactFactor> factors = new ArrayList<>();
+				List<PicoImpactFactor> factors = new ArrayList<>();
 				while (result.next()) {
-					CalcImpactFactor factor = nextFactor(result);
+					PicoImpactFactor factor = nextFactor(result);
 					factors.add(factor);
 				}
 				result.close();
@@ -63,7 +63,7 @@ public class ImpactFactorCache {
 		}
 
 		@Override
-		public Map<Long, List<CalcImpactFactor>> loadAll(
+		public Map<Long, List<PicoImpactFactor>> loadAll(
 				Iterable<? extends Long> impactCategoryIds) throws Exception {
 			log.trace("load impact factors for multiple categories");
 			try (Connection con = database.createConnection()) {
@@ -71,9 +71,9 @@ public class ImpactFactorCache {
 						+ CacheUtil.asSql(impactCategoryIds);
 				Statement statement = con.createStatement();
 				ResultSet result = statement.executeQuery(query);
-				Map<Long, List<CalcImpactFactor>> map = new HashMap<>();
+				Map<Long, List<PicoImpactFactor>> map = new HashMap<>();
 				while (result.next()) {
-					CalcImpactFactor factor = nextFactor(result);
+					PicoImpactFactor factor = nextFactor(result);
 					CacheUtil.addListEntry(map, factor,
 							factor.getImactCategoryId());
 				}
@@ -87,8 +87,8 @@ public class ImpactFactorCache {
 			}
 		}
 
-		private CalcImpactFactor nextFactor(ResultSet r) throws Exception {
-			CalcImpactFactor f = new CalcImpactFactor();
+		private PicoImpactFactor nextFactor(ResultSet r) throws Exception {
+			PicoImpactFactor f = new PicoImpactFactor();
 			f.setImactCategoryId(r.getLong("f_impact_category"));
 			f.setAmount(r.getDouble("value"));
 			f.setAmountFormula(r.getString("formula"));

@@ -1,6 +1,7 @@
 package org.openlca.core.matrix;
 
 import org.openlca.core.math.NumberGenerator;
+import org.openlca.core.matrix.dbtables.PicoUncertainty;
 import org.openlca.core.model.UncertaintyType;
 import org.openlca.expressions.FormulaInterpreter;
 import org.openlca.expressions.Scope;
@@ -14,10 +15,10 @@ class ImpactFactorCell {
 
 	private final long methodId;
 	private final boolean inputFlow;
-	private final CalcImpactFactor factor;
+	private final PicoImpactFactor factor;
 	private NumberGenerator generator;
 
-	ImpactFactorCell(CalcImpactFactor factor, long methodId, boolean inputFlow) {
+	ImpactFactorCell(PicoImpactFactor factor, long methodId, boolean inputFlow) {
 		this.factor = factor;
 		this.methodId = methodId;
 		this.inputFlow = inputFlow;
@@ -42,17 +43,20 @@ class ImpactFactorCell {
 			double v = scope.eval(factor.getAmountFormula());
 			factor.setAmount(v);
 		}
-		if (factor.getParameter1Formula() != null) {
-			double v = scope.eval(factor.getParameter1Formula());
-			factor.setParameter1(v);
+		PicoUncertainty u = factor.uncertainty;
+		if (u == null)
+			return;
+		if (u.parameter1Formula != null) {
+			double v = scope.eval(u.parameter1Formula);
+			u.parameter1 = v;
 		}
-		if (factor.getParameter2Formula() != null) {
-			double v = scope.eval(factor.getParameter2Formula());
-			factor.setParameter2(v);
+		if (u.parameter2Formula != null) {
+			double v = scope.eval(u.parameter2Formula);
+			u.parameter2 = v;
 		}
-		if (factor.getParameter3Formula() != null) {
-			double v = scope.eval(factor.getParameter3Formula());
-			factor.setParameter3(v);
+		if (u.parameter3Formula != null) {
+			double v = scope.eval(u.parameter3Formula);
+			u.parameter3 = v;
 		}
 	}
 
@@ -64,32 +68,14 @@ class ImpactFactorCell {
 	}
 
 	double getNextSimulationValue() {
-		UncertaintyType type = factor.getUncertaintyType();
-		if (type == null || type == UncertaintyType.NONE)
+		PicoUncertainty u = factor.uncertainty;
+		if (u == null || u.type == null || u.type == UncertaintyType.NONE)
 			return getMatrixValue();
 		if (generator == null)
-			generator = createGenerator(type);
+			generator = u.createGenerator();
+		if (generator == null)
+			return getMatrixValue();
 		double amount = generator.next() * factor.getConversionFactor();
 		return inputFlow ? -amount : amount;
 	}
-
-	private NumberGenerator createGenerator(UncertaintyType type) {
-		final CalcImpactFactor f = factor;
-		switch (type) {
-		case LOG_NORMAL:
-			return NumberGenerator.logNormal(f.getParameter1(),
-					f.getParameter2());
-		case NORMAL:
-			return NumberGenerator.normal(f.getParameter1(), f.getParameter2());
-		case TRIANGLE:
-			return NumberGenerator.triangular(f.getParameter1(),
-					f.getParameter2(), f.getParameter3());
-		case UNIFORM:
-			return NumberGenerator
-					.uniform(f.getParameter1(), f.getParameter2());
-		default:
-			return NumberGenerator.discrete(f.getAmount());
-		}
-	}
-
 }

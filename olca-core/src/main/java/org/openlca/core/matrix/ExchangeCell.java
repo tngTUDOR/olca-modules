@@ -87,7 +87,9 @@ class ExchangeCell {
 		if (u == null || u.type == null || u.type == UncertaintyType.NONE)
 			return getMatrixValue();
 		if (generator == null)
-			generator = createGenerator(u);
+			generator = u.createGenerator();
+		if (generator == null)
+			return getMatrixValue();
 		double amount = generator.next() * allocationFactor
 				* exchange.conversionFactor;
 		if (exchange.isInput && !exchange.isAvoidedProduct)
@@ -96,20 +98,4 @@ class ExchangeCell {
 			return amount;
 	}
 
-	private NumberGenerator createGenerator(PicoUncertainty u) {
-		final PicoExchange e = exchange;
-		switch (u.type) {
-		case LOG_NORMAL:
-			return NumberGenerator.logNormal(u.parameter1, u.parameter2);
-		case NORMAL:
-			return NumberGenerator.normal(u.parameter1, u.parameter2);
-		case TRIANGLE:
-			return NumberGenerator.triangular(u.parameter1,
-					u.parameter2, u.parameter3);
-		case UNIFORM:
-			return NumberGenerator.uniform(u.parameter1, u.parameter2);
-		default:
-			return NumberGenerator.discrete(e.amount);
-		}
-	}
 }

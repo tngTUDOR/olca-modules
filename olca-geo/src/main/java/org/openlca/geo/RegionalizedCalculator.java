@@ -9,13 +9,12 @@ import org.openlca.core.math.DataStructures;
 import org.openlca.core.math.IMatrix;
 import org.openlca.core.math.IMatrixSolver;
 import org.openlca.core.math.LcaCalculator;
-import org.openlca.core.matrix.CostVector;
 import org.openlca.core.matrix.Assessment;
+import org.openlca.core.matrix.CostVector;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.InventoryMatrix;
 import org.openlca.core.matrix.LongPair;
 import org.openlca.core.matrix.ParameterTable;
-import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.results.FullResult;
 import org.openlca.core.results.LinkContributions;
 import org.openlca.expressions.FormulaInterpreter;
@@ -36,13 +35,13 @@ public class RegionalizedCalculator {
 		this.solver = solver;
 	}
 
-	public RegionalizedResult calculate(IDatabase db, MatrixCache cache) {
-		return calculate(db, cache, null);
+	public RegionalizedResult calculate(IDatabase db) {
+		return calculate(db, null);
 	}
 
-	public RegionalizedResult calculate(IDatabase db, MatrixCache cache, RegionalizationSetup regioSetup) {
+	public RegionalizedResult calculate(IDatabase db, RegionalizationSetup regioSetup) {
 		try {
-			Inventory inventory = DataStructures.createInventory(setup, cache);
+			Inventory inventory = DataStructures.createInventory(setup, db);
 			if (regioSetup == null)
 				regioSetup = RegionalizationSetup.create(db, setup.impactMethod, inventory.techIndex);
 			if (!regioSetup.canCalculate)

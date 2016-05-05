@@ -11,7 +11,7 @@ import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.ImpactCategoryDao;
 import org.openlca.core.database.ProcessDao;
 import org.openlca.core.matrix.CalcExchange;
-import org.openlca.core.matrix.CalcImpactFactor;
+import org.openlca.core.matrix.PicoImpactFactor;
 import org.openlca.core.model.Exchange;
 import org.openlca.core.model.ImpactCategory;
 import org.openlca.core.model.ImpactFactor;
@@ -60,13 +60,13 @@ public class UncertaintyTableTest {
 		category.getImpactFactors().add(factor);
 		ImpactCategoryDao dao = new ImpactCategoryDao(database);
 		dao.insert(category);
-		List<CalcImpactFactor> factors = cache.getImpactCache().get(
+		List<PicoImpactFactor> factors = cache.getImpactCache().get(
 				category.getId());
 		checkFactor(factors.get(0));
 		dao.delete(category);
 	}
 
-	private void checkFactor(CalcImpactFactor factor) {
+	private void checkFactor(PicoImpactFactor factor) {
 		Assert.assertEquals(1, factor.getParameter1(), 1e-16);
 		Assert.assertEquals(2, factor.getParameter2(), 1e-16);
 		Assert.assertEquals(3, factor.getParameter3(), 1e-16);

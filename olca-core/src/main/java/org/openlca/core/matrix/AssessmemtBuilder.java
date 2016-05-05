@@ -61,13 +61,13 @@ class AssessmemtBuilder {
 	}
 
 	private void fill(ImpactFactorMatrix matrix, LongIndex categoryIndex) {
-		Map<Long, List<CalcImpactFactor>> factorMap = loadFactors(categoryIndex);
+		Map<Long, List<PicoImpactFactor>> factorMap = loadFactors(categoryIndex);
 		for (int row = 0; row < categoryIndex.size(); row++) {
 			long categoryId = categoryIndex.getKeyAt(row);
-			List<CalcImpactFactor> factors = factorMap.get(categoryId);
+			List<PicoImpactFactor> factors = factorMap.get(categoryId);
 			if (factors == null)
 				continue;
-			for (CalcImpactFactor factor : factors) {
+			for (PicoImpactFactor factor : factors) {
 				long flowId = factor.getFlowId();
 				int col = flowIndex.getIndex(flowId);
 				if (col < 0)
@@ -80,7 +80,7 @@ class AssessmemtBuilder {
 		}
 	}
 
-	private Map<Long, List<CalcImpactFactor>> loadFactors(
+	private Map<Long, List<PicoImpactFactor>> loadFactors(
 			LongIndex categoryIndex) {
 		try {
 			return cache.getImpactCache().getAll(
