@@ -3,8 +3,8 @@ package org.openlca.core.matrix.cache;
 import java.util.List;
 
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.matrix.PicoImpactFactor;
 import org.openlca.core.matrix.dbtables.ConversionTable;
+import org.openlca.core.matrix.dbtables.PicoImpactFactor;
 import org.openlca.core.model.ModelType;
 
 import com.google.common.cache.LoadingCache;

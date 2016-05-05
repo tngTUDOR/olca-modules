@@ -1,6 +1,7 @@
 package org.openlca.core.matrix;
 
 import org.openlca.core.math.NumberGenerator;
+import org.openlca.core.matrix.dbtables.PicoImpactFactor;
 import org.openlca.core.matrix.dbtables.PicoUncertainty;
 import org.openlca.core.model.UncertaintyType;
 import org.openlca.expressions.FormulaInterpreter;
@@ -39,9 +40,9 @@ class ImpactFactorCell {
 	}
 
 	private void tryEval(Scope scope) throws Exception {
-		if (factor.getAmountFormula() != null) {
-			double v = scope.eval(factor.getAmountFormula());
-			factor.setAmount(v);
+		if (factor.amountFormula != null) {
+			double v = scope.eval(factor.amountFormula);
+			factor.amount = v;
 		}
 		PicoUncertainty u = factor.uncertainty;
 		if (u == null)
@@ -63,7 +64,7 @@ class ImpactFactorCell {
 	double getMatrixValue() {
 		if (factor == null)
 			return 0;
-		double amount = factor.getAmount() * factor.getConversionFactor();
+		double amount = factor.amount * factor.conversionFactor;
 		return inputFlow ? -amount : amount;
 	}
 
@@ -75,7 +76,7 @@ class ImpactFactorCell {
 			generator = u.createGenerator();
 		if (generator == null)
 			return getMatrixValue();
-		double amount = generator.next() * factor.getConversionFactor();
+		double amount = generator.next() * factor.conversionFactor;
 		return inputFlow ? -amount : amount;
 	}
 }

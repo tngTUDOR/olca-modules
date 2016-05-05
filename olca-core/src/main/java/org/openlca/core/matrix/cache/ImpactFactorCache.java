@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.matrix.PicoImpactFactor;
 import org.openlca.core.matrix.dbtables.ConversionTable;
+import org.openlca.core.matrix.dbtables.PicoImpactFactor;
 import org.openlca.core.model.UncertaintyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public class ImpactFactorCache {
 				while (result.next()) {
 					PicoImpactFactor factor = nextFactor(result);
 					CacheUtil.addListEntry(map, factor,
-							factor.getImactCategoryId());
+							factor.imactCategoryID);
 				}
 				result.close();
 				statement.close();
@@ -89,11 +89,11 @@ public class ImpactFactorCache {
 
 		private PicoImpactFactor nextFactor(ResultSet r) throws Exception {
 			PicoImpactFactor f = new PicoImpactFactor();
-			f.setImactCategoryId(r.getLong("f_impact_category"));
-			f.setAmount(r.getDouble("value"));
-			f.setAmountFormula(r.getString("formula"));
-			f.setConversionFactor(getConversionFactor(r));
-			f.setFlowId(r.getLong("f_flow"));
+			f.imactCategoryID = r.getLong("f_impact_category");
+			f.amount = r.getDouble("value");
+			f.amountFormula = r.getString("formula");
+			f.conversionFactor = getConversionFactor(r);
+			f.flowID = r.getLong("f_flow");
 			int uncertaintyType = r.getInt("distribution_type");
 			if (!r.wasNull()) {
 				f.setUncertaintyType(UncertaintyType.values()[uncertaintyType]);

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.matrix.dbtables.PicoImpactFactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +69,7 @@ class AssessmemtBuilder {
 			if (factors == null)
 				continue;
 			for (PicoImpactFactor factor : factors) {
-				long flowId = factor.getFlowId();
+				long flowId = factor.flowID;
 				int col = flowIndex.getIndex(flowId);
 				if (col < 0)
 					continue;

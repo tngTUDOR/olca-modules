@@ -11,7 +11,7 @@ import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.ImpactCategoryDao;
 import org.openlca.core.database.ProcessDao;
 import org.openlca.core.matrix.CalcExchange;
-import org.openlca.core.matrix.PicoImpactFactor;
+import org.openlca.core.matrix.dbtables.PicoImpactFactor;
 import org.openlca.core.model.Exchange;
 import org.openlca.core.model.ImpactCategory;
 import org.openlca.core.model.ImpactFactor;
