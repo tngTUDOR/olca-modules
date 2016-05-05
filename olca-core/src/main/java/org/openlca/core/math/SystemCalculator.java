@@ -2,12 +2,11 @@ package org.openlca.core.math;
 
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.matrix.CostVector;
-import org.openlca.core.matrix.ImpactMatrix;
-import org.openlca.core.matrix.ImpactTable;
+import org.openlca.core.matrix.AssessmentMatrix;
+import org.openlca.core.matrix.Assessment;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.InventoryMatrix;
 import org.openlca.core.matrix.ParameterTable;
-import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.results.ContributionResult;
 import org.openlca.core.results.FullResult;
 import org.openlca.core.results.SimpleResult;
@@ -18,11 +17,11 @@ import org.slf4j.LoggerFactory;
 public class SystemCalculator {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
-	private final MatrixCache matrixCache;
+	private final IDatabase db;
 	private final IMatrixSolver solver;
 
-	public SystemCalculator(MatrixCache cache, IMatrixSolver solver) {
-		this.matrixCache = cache;
+	public SystemCalculator(IDatabase db, IMatrixSolver solver) {
+		this.db = db;
 		this.solver = solver;
 	}
 
@@ -42,8 +41,7 @@ public class SystemCalculator {
 	}
 
 	private LcaCalculator calculator(CalculationSetup setup) {
-		IDatabase db = matrixCache.getDatabase();
-		Inventory inventory = DataStructures.createInventory(setup, matrixCache);
+		Inventory inventory = DataStructures.createInventory(setup, db);
 		ParameterTable parameterTable = DataStructures.createParameterTable(db,
 				setup, inventory);
 		FormulaInterpreter interpreter = parameterTable.createInterpreter();
@@ -51,9 +49,9 @@ public class SystemCalculator {
 				solver.getMatrixFactory(), interpreter);
 		LcaCalculator calculator = new LcaCalculator(solver, inventoryMatrix);
 		if (setup.impactMethod != null) {
-			ImpactTable impactTable = ImpactTable.build(matrixCache,
+			Assessment impactTable = Assessment.build(matrixCache,
 					setup.impactMethod.getId(), inventory.flowIndex);
-			ImpactMatrix impactMatrix = impactTable.createMatrix(
+			AssessmentMatrix impactMatrix = impactTable.createMatrix(
 					solver.getMatrixFactory(), interpreter);
 			calculator.setImpactMatrix(impactMatrix);
 		}

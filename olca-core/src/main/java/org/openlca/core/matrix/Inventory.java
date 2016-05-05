@@ -1,8 +1,8 @@
 package org.openlca.core.matrix;
 
+import org.openlca.core.database.IDatabase;
 import org.openlca.core.math.IMatrix;
 import org.openlca.core.math.IMatrixFactory;
-import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.model.AllocationMethod;
 import org.openlca.expressions.FormulaInterpreter;
 
@@ -11,20 +11,21 @@ import org.openlca.expressions.FormulaInterpreter;
  */
 public class Inventory {
 
-	public TechIndex productIndex;
+	public TechIndex techIndex;
 	public FlowIndex flowIndex;
 	public ExchangeMatrix technologyMatrix;
 	public ExchangeMatrix interventionMatrix;
 	public AllocationMethod allocationMethod;
 
-	public static Inventory build(MatrixCache matrixCache,
-			TechIndex productIndex, AllocationMethod allocationMethod) {
-		return new InventoryBuilder(matrixCache, productIndex, allocationMethod)
+	public static Inventory build(TechIndex techIndex, IDatabase db,
+			AllocationMethod allocationMethod) {
+		return new InventoryBuilder(techIndex, db)
+				.allocation(allocationMethod)
 				.build();
 	}
 
 	public boolean isEmpty() {
-		return productIndex == null || productIndex.size() == 0
+		return techIndex == null || techIndex.size() == 0
 				|| flowIndex == null || flowIndex.isEmpty()
 				|| technologyMatrix == null || technologyMatrix.isEmpty()
 				|| interventionMatrix == null || interventionMatrix.isEmpty();
@@ -39,7 +40,7 @@ public class Inventory {
 		evalFormulas(interpreter);
 		InventoryMatrix matrix = new InventoryMatrix();
 		matrix.flowIndex = flowIndex;
-		matrix.productIndex = productIndex;
+		matrix.productIndex = techIndex;
 		IMatrix enviMatrix = interventionMatrix.createRealMatrix(factory);
 		matrix.interventionMatrix = enviMatrix;
 		IMatrix techMatrix = technologyMatrix.createRealMatrix(factory);

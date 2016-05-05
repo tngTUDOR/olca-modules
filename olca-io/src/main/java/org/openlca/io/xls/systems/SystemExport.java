@@ -19,7 +19,7 @@ import org.openlca.core.database.EntityCache;
 import org.openlca.core.math.DataStructures;
 import org.openlca.core.math.IMatrix;
 import org.openlca.core.matrix.FlowIndex;
-import org.openlca.core.matrix.ImpactTable;
+import org.openlca.core.matrix.Assessment;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.LongIndex;
 import org.openlca.core.matrix.TechIndex;
@@ -34,7 +34,7 @@ public class SystemExport {
 	private Logger log = LoggerFactory.getLogger(getClass());
 
 	private Inventory inventory;
-	private ImpactTable impactTable;
+	private Assessment impactTable;
 	private SystemExportConfig conf;
 
 	public SystemExport(SystemExportConfig config) {
@@ -57,7 +57,7 @@ public class SystemExport {
 		inventory = DataStructures.createInventory(conf.getSystem(),
 				conf.getAllocationMethod(), conf.getMatrixCache());
 		if (conf.getImpactMethod() != null) {
-			impactTable = ImpactTable.build(conf.getMatrixCache(), conf
+			impactTable = Assessment.build(conf.getMatrixCache(), conf
 					.getImpactMethod().getId(), inventory.flowIndex);
 		}
 	}
@@ -100,7 +100,7 @@ public class SystemExport {
 
 		String name = conf.getSystem().getName();
 		int processes = conf.getSystem().getProcesses().size();
-		int products = inventory.productIndex.size();
+		int products = inventory.techIndex.size();
 		int flows = inventory.flowIndex.size();
 		String dimensions = flows + "x" + products;
 
@@ -147,7 +147,7 @@ public class SystemExport {
 
 		String name = conf.getSystem().getName();
 		int processes = conf.getSystem().getProcesses().size();
-		int products = inventory.productIndex.size();
+		int products = inventory.techIndex.size();
 		String dimensions = products + "x" + products;
 
 		currentRow = line(sheet, currentRow, "Product system:", name);
@@ -265,7 +265,7 @@ public class SystemExport {
 	}
 
 	private void createElementarySheet(Workbook workbook) {
-		ExcelHeader columnHeader = createProductHeader(inventory.productIndex);
+		ExcelHeader columnHeader = createProductHeader(inventory.techIndex);
 		ExcelHeader rowHeader = createFlowHeader(inventory.flowIndex);
 		MatrixExcelExport export = new MatrixExcelExport();
 		export.setColumnHeader(columnHeader);
@@ -276,8 +276,8 @@ public class SystemExport {
 	}
 
 	private void createProductSheet(Workbook workbook) {
-		ExcelHeader columnHeader = createProductHeader(inventory.productIndex);
-		ExcelHeader rowHeader = createProductHeader(inventory.productIndex);
+		ExcelHeader columnHeader = createProductHeader(inventory.techIndex);
+		ExcelHeader rowHeader = createProductHeader(inventory.techIndex);
 		MatrixExcelExport export = new MatrixExcelExport();
 		export.setColumnHeader(columnHeader);
 		export.setRowHeader(rowHeader);

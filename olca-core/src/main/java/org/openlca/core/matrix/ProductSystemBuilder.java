@@ -1,8 +1,5 @@
 package org.openlca.core.matrix;
 
-import gnu.trove.impl.Constants;
-import gnu.trove.set.hash.TLongHashSet;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -11,7 +8,8 @@ import java.util.List;
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.NativeSql;
 import org.openlca.core.database.NativeSql.BatchInsertHandler;
-import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.matrix.dbtables.ExchangeTable;
+import org.openlca.core.matrix.dbtables.ProviderTable;
 import org.openlca.core.matrix.product.index.IProductIndexBuilder;
 import org.openlca.core.matrix.product.index.TechIndexBuilder;
 import org.openlca.core.matrix.product.index.TechIndexCutoffBuilder;
@@ -23,22 +21,22 @@ import org.openlca.core.model.ProductSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProductSystemBuilder  {
+import gnu.trove.impl.Constants;
+import gnu.trove.set.hash.TLongHashSet;
+
+public class ProductSystemBuilder {
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
-	private MatrixCache matrixCache;
 	private IDatabase database;
-	private boolean preferSystemProcesses;
+	private ProcessType preferredType;
 	private Double cutoff;
-	
-	public ProductSystemBuilder(MatrixCache matrixCache,
-			boolean preferSystemProcesses) {
-		this.matrixCache = matrixCache;
-		this.database = matrixCache.getDatabase();
-		this.preferSystemProcesses = preferSystemProcesses;
+
+	public ProductSystemBuilder(IDatabase db, ProcessType preferredType) {
+		this.database = db;
+		this.preferredType = preferredType;
 	}
-	
+
 	public void setCutoff(Double cutoff) {
 		this.cutoff = cutoff;
 	}
@@ -73,8 +71,6 @@ public class ProductSystemBuilder  {
 	private void run(ProductSystem system, LongPair processProduct) {
 		log.trace("build product index");
 		IProductIndexBuilder builder = getProductIndexBuilder();
-		builder.setPreferredType(preferSystemProcesses ? ProcessType.LCI_RESULT
-				: ProcessType.UNIT_PROCESS);
 		TechIndex index = builder.build(processProduct);
 		log.trace(
 				"built a product index with {} process products and {} links",
@@ -84,10 +80,12 @@ public class ProductSystemBuilder  {
 	}
 
 	private IProductIndexBuilder getProductIndexBuilder() {
-		if(cutoff == null || cutoff == 0)
-			return new TechIndexBuilder(matrixCache);
+		ExchangeTable exchanges = ExchangeTable.create(database);
+		ProviderTable providers = ProviderTable.create(database, preferredType);
+		if (cutoff == null || cutoff == 0)
+			return new TechIndexBuilder(exchanges, providers);
 		else
-			return new TechIndexCutoffBuilder(matrixCache, cutoff);
+			return new TechIndexCutoffBuilder(exchanges, providers, cutoff);
 	}
 
 	private void addLinksAndProcesses(ProductSystem system, TechIndex index) {

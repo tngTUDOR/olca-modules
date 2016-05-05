@@ -10,7 +10,7 @@ import org.openlca.core.math.IMatrix;
 import org.openlca.core.math.IMatrixSolver;
 import org.openlca.core.math.LcaCalculator;
 import org.openlca.core.matrix.CostVector;
-import org.openlca.core.matrix.ImpactTable;
+import org.openlca.core.matrix.Assessment;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.InventoryMatrix;
 import org.openlca.core.matrix.LongPair;
@@ -44,7 +44,7 @@ public class RegionalizedCalculator {
 		try {
 			Inventory inventory = DataStructures.createInventory(setup, cache);
 			if (regioSetup == null)
-				regioSetup = RegionalizationSetup.create(db, setup.impactMethod, inventory.productIndex);
+				regioSetup = RegionalizationSetup.create(db, setup.impactMethod, inventory.techIndex);
 			if (!regioSetup.canCalculate)
 				return null;
 
@@ -53,12 +53,12 @@ public class RegionalizedCalculator {
 			FormulaInterpreter interpreter = parameterTable.createInterpreter();
 			InventoryMatrix m = inventory.createMatrix(
 					solver.getMatrixFactory(), interpreter);
-			ImpactTable impactTable = ImpactTable.build(cache,
+			Assessment impactTable = Assessment.build(cache,
 					setup.impactMethod.getId(), inventory.flowIndex);
 
 			FullResult r = new FullResult();
 			r.flowIndex = inventory.flowIndex;
-			r.productIndex = inventory.productIndex;
+			r.productIndex = inventory.techIndex;
 			r.impactIndex = impactTable.categoryIndex;
 
 			// direct LCI results
@@ -131,7 +131,7 @@ public class RegionalizedCalculator {
 		}
 	}
 
-	private void eachKml(RegionalizationSetup regioSetup, ImpactTable table,
+	private void eachKml(RegionalizationSetup regioSetup, Assessment table,
 			FormulaInterpreter interpreter, BiConsumer<LocationKml, IMatrix> fn) {
 		Scope scope = interpreter.getScope(setup.impactMethod.getId());
 		for (LocationKml kml : regioSetup.kmlData) {

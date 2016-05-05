@@ -50,12 +50,12 @@ public class CostVector {
 		}
 
 		private CostVector build() {
-			if (inventory == null || inventory.productIndex == null)
+			if (inventory == null || inventory.techIndex == null)
 				return new CostVector(null, null);
-			values = new double[inventory.productIndex.size()];
+			values = new double[inventory.techIndex.size()];
 			scan(inventory.technologyMatrix);
 			scan(inventory.interventionMatrix);
-			return new CostVector(inventory.productIndex, values);
+			return new CostVector(inventory.techIndex, values);
 		}
 
 		private void scan(ExchangeMatrix matrix) {

@@ -1,7 +1,7 @@
 package org.openlca.core.math;
 
 import org.openlca.core.matrix.CostVector;
-import org.openlca.core.matrix.ImpactMatrix;
+import org.openlca.core.matrix.AssessmentMatrix;
 import org.openlca.core.matrix.InventoryMatrix;
 import org.openlca.core.matrix.LongPair;
 import org.openlca.core.matrix.TechIndex;
@@ -15,7 +15,7 @@ public class LcaCalculator {
 	private final IMatrixSolver solver;
 	private final InventoryMatrix inventory;
 
-	private ImpactMatrix impactMatrix;
+	private AssessmentMatrix impactMatrix;
 	private CostVector costVector;
 
 	public LcaCalculator(IMatrixSolver solver, InventoryMatrix inventory) {
@@ -23,7 +23,7 @@ public class LcaCalculator {
 		this.inventory = inventory;
 	}
 
-	public void setImpactMatrix(ImpactMatrix impactMatrix) {
+	public void setImpactMatrix(AssessmentMatrix impactMatrix) {
 		this.impactMatrix = impactMatrix;
 	}
 

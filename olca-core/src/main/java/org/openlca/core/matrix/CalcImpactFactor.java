@@ -9,6 +9,7 @@ public class CalcImpactFactor {
 	private double conversionFactor;
 	private double amount;
 	private String amountFormula;
+
 	private UncertaintyType uncertaintyType;
 	private double parameter1;
 	private double parameter2;

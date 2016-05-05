@@ -57,7 +57,7 @@ class InventoryBuilder {
 		inventory.allocationMethod = allocation;
 		inventory.flowIndex = flowIndex;
 		inventory.interventionMatrix = interventionMatrix;
-		inventory.productIndex = techIndex;
+		inventory.techIndex = techIndex;
 		inventory.technologyMatrix = technologyMatrix;
 		fillMatrices();
 		return inventory;

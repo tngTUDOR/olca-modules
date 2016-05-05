@@ -9,15 +9,15 @@ import org.openlca.expressions.FormulaInterpreter;
  * The ImpactTable is the corresponding data type to the Inventory type but
  * wraps a matrix of impact assessment factors.
  */
-public class ImpactTable {
+public class Assessment {
 
 	public LongIndex categoryIndex;
 	public FlowIndex flowIndex;
 	public ImpactFactorMatrix factorMatrix;
 
-	public static ImpactTable build(MatrixCache cache, long impactMethodId,
+	public static Assessment build(MatrixCache cache, long impactMethodId,
 			FlowIndex flowIndex) {
-		return new ImpactTableBuilder(cache, impactMethodId, flowIndex).build();
+		return new AssessmemtBuilder(cache, impactMethodId, flowIndex).build();
 	}
 
 	public boolean isEmpty() {
@@ -26,14 +26,14 @@ public class ImpactTable {
 				|| factorMatrix == null || factorMatrix.isEmpty();
 	}
 
-	public ImpactMatrix createMatrix(IMatrixFactory<?> factory) {
+	public AssessmentMatrix createMatrix(IMatrixFactory<?> factory) {
 		return createMatrix(factory, null);
 	}
 
-	public ImpactMatrix createMatrix(IMatrixFactory<?> factory,
+	public AssessmentMatrix createMatrix(IMatrixFactory<?> factory,
 			FormulaInterpreter interpreter) {
 		evalFormulas(interpreter);
-		ImpactMatrix matrix = new ImpactMatrix();
+		AssessmentMatrix matrix = new AssessmentMatrix();
 		matrix.categoryIndex = categoryIndex;
 		if (factorMatrix != null)
 			matrix.factorMatrix = (IMatrix) factorMatrix.createRealMatrix(factory);
@@ -49,7 +49,7 @@ public class ImpactTable {
 	 * exactly in size (so normally you first call createMatrix and than
 	 * simulate).
 	 */
-	public void simulate(ImpactMatrix matrix, FormulaInterpreter interpreter) {
+	public void simulate(AssessmentMatrix matrix, FormulaInterpreter interpreter) {
 		evalFormulas(interpreter);
 		if (factorMatrix != null)
 			factorMatrix.simulate(matrix.factorMatrix);

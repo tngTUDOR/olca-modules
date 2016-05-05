@@ -8,7 +8,6 @@ import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.LongPair;
 import org.openlca.core.matrix.ParameterTable;
 import org.openlca.core.matrix.TechIndex;
-import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.model.AllocationMethod;
 import org.openlca.core.model.Exchange;
 import org.openlca.core.model.Flow;
@@ -48,28 +47,26 @@ public class DataStructures {
 		return index;
 	}
 
-	public static Inventory createInventory(ProductSystem system,
-			MatrixCache matrixCache) {
+	public static Inventory createInventory(ProductSystem system, IDatabase db) {
 		TechIndex index = createProductIndex(system);
 		AllocationMethod method = AllocationMethod.USE_DEFAULT;
-		return Inventory.build(matrixCache, index, method);
+		return Inventory.build(index, db, method);
 	}
 
 	public static Inventory createInventory(ProductSystem system,
-			AllocationMethod allocationMethod, MatrixCache matrixCache) {
+			AllocationMethod allocationMethod, IDatabase db) {
 		TechIndex index = createProductIndex(system);
-		return Inventory.build(matrixCache, index, allocationMethod);
+		return Inventory.build(index, db, allocationMethod);
 	}
 
-	public static Inventory createInventory(CalculationSetup setup,
-			MatrixCache cache) {
+	public static Inventory createInventory(CalculationSetup setup, IDatabase db) {
 		ProductSystem system = setup.productSystem;
 		AllocationMethod method = setup.allocationMethod;
 		if (method == null)
 			method = AllocationMethod.NONE;
-		TechIndex productIndex = createProductIndex(system);
-		productIndex.setDemand(ReferenceAmount.get(setup));
-		return Inventory.build(cache, productIndex, method);
+		TechIndex index = createProductIndex(system);
+		index.setDemand(ReferenceAmount.get(setup));
+		return Inventory.build(index, db, method);
 	}
 
 	public static ParameterTable createParameterTable(IDatabase db,
@@ -77,8 +74,8 @@ public class DataStructures {
 		Set<Long> contexts = new HashSet<>();
 		if (setup.impactMethod != null)
 			contexts.add(setup.impactMethod.getId());
-		if (inventory.productIndex != null)
-			contexts.addAll(inventory.productIndex.getProcessIds());
+		if (inventory.techIndex != null)
+			contexts.addAll(inventory.techIndex.getProcessIds());
 		ParameterTable table = ParameterTable.build(db, contexts);
 		table.apply(setup.parameterRedefs);
 		return table;

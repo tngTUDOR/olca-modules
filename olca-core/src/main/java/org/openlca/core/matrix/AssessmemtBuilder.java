@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.primitives.Longs;
 
-class ImpactTableBuilder {
+class AssessmemtBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -20,19 +20,19 @@ class ImpactTableBuilder {
 	private final long methodId;
 	private final FlowIndex flowIndex;
 
-	ImpactTableBuilder(MatrixCache cache, long impactMethodId,
+	AssessmemtBuilder(MatrixCache cache, long impactMethodId,
 			FlowIndex flowIndex) {
 		this.cache = cache;
 		this.methodId = impactMethodId;
 		this.flowIndex = flowIndex;
 	}
 
-	ImpactTable build() {
+	Assessment build() {
 		log.trace("Build impact factor matrix for method {}", methodId);
 		LongIndex categoryIndex = buildCategoryIndex();
 		if (categoryIndex.isEmpty() || flowIndex.isEmpty())
 			return null;
-		ImpactTable table = new ImpactTable();
+		Assessment table = new Assessment();
 		table.categoryIndex = categoryIndex;
 		table.flowIndex = flowIndex;
 		ImpactFactorMatrix matrix = new ImpactFactorMatrix(

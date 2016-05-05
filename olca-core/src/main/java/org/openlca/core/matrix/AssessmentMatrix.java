@@ -2,7 +2,7 @@ package org.openlca.core.matrix;
 
 import org.openlca.core.math.IMatrix;
 
-public class ImpactMatrix {
+public class AssessmentMatrix {
 
 	public LongIndex categoryIndex;
 	public FlowIndex flowIndex;

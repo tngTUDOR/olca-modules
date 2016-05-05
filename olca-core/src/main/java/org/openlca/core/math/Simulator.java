@@ -1,11 +1,11 @@
 package org.openlca.core.math;
 
-import org.openlca.core.matrix.ImpactMatrix;
-import org.openlca.core.matrix.ImpactTable;
+import org.openlca.core.database.IDatabase;
+import org.openlca.core.matrix.AssessmentMatrix;
+import org.openlca.core.matrix.Assessment;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.InventoryMatrix;
 import org.openlca.core.matrix.ParameterTable;
-import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.model.descriptors.ImpactMethodDescriptor;
 import org.openlca.core.results.SimpleResult;
 import org.openlca.core.results.SimulationResult;
@@ -20,8 +20,8 @@ public class Simulator {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
+	private IDatabase db;
 	private ImpactMethodDescriptor impactMethod;
-	private MatrixCache cache;
 	private final IMatrixFactory<?> factory;
 	private final IMatrixSolver matrixSolver;
 
@@ -29,14 +29,13 @@ public class Simulator {
 	private Inventory inventory;
 	private ParameterTable parameterTable;
 	private InventoryMatrix inventoryMatrix;
-	private ImpactTable impactTable;
-	private ImpactMatrix impactMatrix;
+	private Assessment impactTable;
+	private AssessmentMatrix impactMatrix;
 	private CalculationSetup setup;
 
-	public Simulator(CalculationSetup setup, MatrixCache database,
-			IMatrixSolver solver) {
+	public Simulator(CalculationSetup setup, IDatabase db, IMatrixSolver solver) {
 		this.impactMethod = setup.impactMethod;
-		this.cache = database;
+		this.db = db;
 		this.setup = setup;
 		this.factory = solver.getMatrixFactory();
 		this.matrixSolver = solver;
@@ -81,15 +80,15 @@ public class Simulator {
 
 	private void setUp() {
 		log.trace("set up inventory");
-		inventory = DataStructures.createInventory(setup, cache);
-		parameterTable = DataStructures.createParameterTable(cache.getDatabase(),
+		inventory = DataStructures.createInventory(setup, db);
+		parameterTable = DataStructures.createParameterTable(db,
 				setup, inventory);
 		inventoryMatrix = inventory.createMatrix(factory);
 		result = new SimulationResult();
-		result.productIndex = inventory.productIndex;
+		result.productIndex = inventory.techIndex;
 		result.flowIndex = inventory.flowIndex;
 		if (impactMethod != null) {
-			ImpactTable impactTable = ImpactTable.build(cache,
+			Assessment impactTable = Assessment.build(cache,
 					impactMethod.getId(), inventory.flowIndex);
 			if (impactTable.isEmpty()) {
 				return;
