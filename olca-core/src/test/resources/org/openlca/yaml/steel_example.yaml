@@ -1,0 +1,49 @@
+# units and physical quantities
+- unitGroup:
+    &Units_of_mass
+    name: Units of mass
+    units:
+      - &kg
+        name: kg
+        factor: 1.0
+    refUnit: *kg
+
+- quantity:
+    &Mass
+    name: Mass
+    unitGroup: *Units_of_mass
+
+# flows
+- flow:
+    &CO2
+    type: elementary
+    name: carbon dioxide
+    refQuantity: *Mass
+
+- flow:
+    &Steel
+    type: product
+    name: Steel
+    refQuantity: *Mass
+
+# processes
+- process:
+    &Steel_production
+    name: Steel production
+    type: lci
+    outputs:
+      - &Steel_production_Steel
+        flow: *Steel
+        unit: *kg
+        amount: 1
+      - &Steel_production_CO2
+        flow: *CO2
+        unit: *kg
+        amount: 1.6
+    refFlow: *Steel_production_Steel
+
+# product systems
+- system:
+    name: Steel production
+    refProcess: *Steel_production
+    refFlow: *Steel_production_Steel

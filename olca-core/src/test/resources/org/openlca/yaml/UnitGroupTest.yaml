@@ -1,0 +1,13 @@
+- unitGroup:
+    &Units_of_mass
+    uuid: 91d1919d-e58f-498b-b620-b3e2694f4f1d
+    name: Units of mass
+    description: Description of units of mass 
+    units:
+      - &kg
+        name: kg
+        factor: 1.0
+      - &g
+        name: g
+        factor: 0.001
+    refUnit: *kg

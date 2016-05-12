@@ -1,0 +1,9 @@
+# A valid unit group data set with minimal information.
+# * UUIDs are generated from the name and type
+# * the first unit gets automatically 1 as conversion factor
+#   and is set as the reference unit of the data set. 
+
+- unitGroup:
+  name: Units of mass
+  units:
+    - name: kg
