@@ -33,9 +33,9 @@ public class CsvMatrixExport implements Runnable {
 
 	public CsvMatrixExport(CsvMatrixExportData data) {
 		this.data = data;
-		cache = data.getEntityCache();
-		separator = data.getColumnSeperator();
-		point = data.getDecimalSeparator();
+		cache = data.cache != null ? data.cache : EntityCache.create(data.db);
+		separator = data.columnSeperator;
+		point = data.decimalSeparator;
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class CsvMatrixExport implements Runnable {
 		}
 		log.trace("Build inventory matrix");
 		Inventory inventory = DataStructures.createInventory(
-				data.getProductSystem(), data.getMatrixCache());
+				data.productSystem, data.db);
 		log.trace("Write technology matrix");
 		writeTechFile(inventory);
 		log.trace("Write intervention matrix");
@@ -56,7 +56,7 @@ public class CsvMatrixExport implements Runnable {
 	}
 
 	private void writeTechFile(Inventory inventory) {
-		try (FileWriter writer = new FileWriter(data.getTechnologyFile());
+		try (FileWriter writer = new FileWriter(data.technologyFile);
 				BufferedWriter buffer = new BufferedWriter(writer)) {
 			writeTechMatrix(inventory, buffer);
 		} catch (Exception e) {
@@ -86,7 +86,7 @@ public class CsvMatrixExport implements Runnable {
 	}
 
 	private void writeEnviFile(Inventory inventory) {
-		try (FileWriter writer = new FileWriter(data.getInterventionFile());
+		try (FileWriter writer = new FileWriter(data.interventionFile);
 				BufferedWriter buffer = new BufferedWriter(writer)) {
 			writeEnviMatrix(inventory, buffer);
 		} catch (Exception e) {

@@ -3,7 +3,6 @@ package org.openlca.io.xls.systems;
 import org.openlca.core.database.EntityCache;
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.math.IMatrixFactory;
-import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.model.AllocationMethod;
 import org.openlca.core.model.ProductSystem;
 import org.openlca.core.model.descriptors.BaseDescriptor;
@@ -14,7 +13,6 @@ public class SystemExportConfig {
 	private final ProductSystem system;
 	private final IDatabase database;
 	private final IMatrixFactory<?> matrixFactory;
-	private MatrixCache matrixCache;
 	private EntityCache entityCache;
 	private AllocationMethod allocationMethod;
 	private BaseDescriptor impactMethod;
@@ -32,16 +30,6 @@ public class SystemExportConfig {
 
 	public String getOlcaVersion() {
 		return olcaVersion;
-	}
-
-	public void setMatrixCache(MatrixCache matrixCache) {
-		this.matrixCache = matrixCache;
-	}
-
-	public MatrixCache getMatrixCache() {
-		if (matrixCache == null)
-			matrixCache = MatrixCache.createLazy(database);
-		return matrixCache;
 	}
 
 	public void setEntityCache(EntityCache entityCache) {

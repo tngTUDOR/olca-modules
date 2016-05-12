@@ -52,7 +52,7 @@ public class RegionalizedCalculator {
 			FormulaInterpreter interpreter = parameterTable.createInterpreter();
 			InventoryMatrix m = inventory.createMatrix(
 					solver.getMatrixFactory(), interpreter);
-			Assessment impactTable = Assessment.build(cache,
+			Assessment impactTable = Assessment.build(db,
 					setup.impactMethod.getId(), inventory.flowIndex);
 
 			FullResult r = new FullResult();
