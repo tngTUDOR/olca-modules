@@ -1,4 +1,4 @@
-package org.openlca.core.matrix.cache;
+package org.openlca.core.matrix;
 
 import org.junit.Assert;
 import org.junit.Test;
