@@ -4,24 +4,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import org.openlca.core.database.CategorizedEntityDao;
-import org.openlca.core.database.Daos;
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.database.ImpactCategoryDao;
 import org.openlca.core.database.NativeSql;
-import org.openlca.core.database.UnitDao;
-import org.openlca.core.model.ModelType;
-import org.openlca.core.model.descriptors.BaseDescriptor;
-import org.openlca.core.model.descriptors.CategorizedDescriptor;
-import org.openlca.core.model.descriptors.ImpactCategoryDescriptor;
-import org.openlca.core.model.descriptors.UnitDescriptor;
+import org.openlca.core.database.references.IReferenceSearch.Reference;
+import org.openlca.core.model.AbstractEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,28 +20,51 @@ class Search {
 
 	private final static Logger log = LoggerFactory.getLogger(Search.class);
 	private final IDatabase database;
+	private final Class<? extends AbstractEntity> type;
 
-	static Search on(IDatabase database) {
-		return new Search(database);
+	static Search on(IDatabase database, Class<? extends AbstractEntity> type) {
+		return new Search(database, type);
 	}
 
-	private Search(IDatabase database) {
+	private Search(IDatabase database, Class<? extends AbstractEntity> type) {
 		this.database = database;
+		this.type = type;
 	}
 
-	List<BaseDescriptor> findMixedReferences(String table, String idField,
-			Set<Long> ids, Reference[] references, boolean includeOptional) {
+	List<Reference> findReferences(String table, String idField, Set<Long> ids,
+			Ref[] refs, boolean includeOptional) {
+		return findReferences(table, idField, ids, null, refs, includeOptional);
+	}
+
+	List<Reference> findReferences(String table, String idField, Set<Long> ids,
+			Map<Long, Long> idToOwnerId, Ref[] refs, boolean includeOptional) {
 		if (ids.isEmpty())
 			return Collections.emptyList();
-		Map<ModelType, Set<Long>> idsByType = createEmptyMapFrom(references);
-		String query = createQuery(table, idField, ids, references);
-		query(query, (result) -> {
-			for (int i = 0; i < references.length; i++)
-				if (!references[i].optional || includeOptional)
-					idsByType.get(references[i].type)
-							.add(result.getLong(i + 1));
-		});
-		return loadDescriptors(idsByType);
+		List<Reference> references = new ArrayList<Reference>();
+		List<String> queries = createQueries(table, idField, ids, refs);
+		for (String query : queries)
+			query(query, (result) -> {
+				long ownerId = result.getLong(1);
+				long nestedOwnerId = 0;
+				if (idToOwnerId != null) {
+					nestedOwnerId = ownerId;
+					ownerId = idToOwnerId.get(ownerId);
+				}
+				for (int i = 0; i < refs.length; i++) {
+					if (refs[i].optional && !includeOptional)
+						continue;
+					long id = result.getLong(i + 2);
+					references.add(createReference(refs[i], id, ownerId,
+							nestedOwnerId));
+				}
+			});
+		return references;
+	}
+
+	private Reference createReference(Ref ref, long id, long ownerId,
+			long nestedOwnerId) {
+		return new Reference(ref.property, ref.type, id, type, ownerId,
+				ref.nestedProperty, ref.nestedType, nestedOwnerId, ref.optional);
 	}
 
 	void query(String query, Consumer<ResultSetWrapper> handler) {
@@ -60,101 +74,115 @@ class Search {
 				return true;
 			});
 		} catch (SQLException e) {
-			log.error("Error executing native query '" + query + "'");
+			log.error("Error executing native query '" + query + "'", e);
 		}
 	}
 
-	private String createQuery(String table, String idField, Set<Long> ids,
-			Reference[] references) {
-		StringBuilder query = new StringBuilder();
-		query.append("SELECT DISTINCT ");
+	private List<String> createQueries(String table, String idField, Set<Long> ids,
+			Ref[] references) {
+		List<String> queries = new ArrayList<>();
+		StringBuilder subquery = new StringBuilder();
+		subquery.append("SELECT DISTINCT " + idField);
 		for (int i = 0; i < references.length; i++) {
-			if (i != 0)
-				query.append(",");
-			query.append(references[i].field);
+			subquery.append(", ");
+			subquery.append(references[i].field);
 		}
-		query.append(" FROM " + table);
-		query.append(" WHERE " + idField + " IN (" + asSqlList(ids.toArray())
-				+ ")");
-		return query.toString();
+		subquery.append(" FROM " + table);
+		subquery.append(" WHERE " + idField + " IN ");
+		List<String> idLists = asSqlLists(ids.toArray());
+		for (String idList : idLists)
+			queries.add(subquery + "(" + idList + ")");
+		return queries;
 	}
 
-	private Map<ModelType, Set<Long>> createEmptyMapFrom(Reference[] references) {
-		Map<ModelType, Set<Long>> map = new HashMap<>();
-		for (int i = 0; i < references.length; i++)
-			map.put(references[i].type, new HashSet<>());
-		return map;
+	/**
+	 * Creates comma separated lists, each containing a thousand ids
+	 */
+	static List<String> asSqlLists(Object[] values) {
+		List<String> idLists = new ArrayList<>();
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < values.length; i++) {
+			if (i % 1000 != 0)
+				builder.append(',');
+			builder.append(values[i].toString());
+			if ((i + 1) % 1000 == 0 || (i + 1) == values.length) {
+				idLists.add(builder.toString());
+				builder = new StringBuilder();
+			}
+		}
+		return idLists;
 	}
 
-	private List<BaseDescriptor> loadDescriptors(
-			Map<ModelType, Set<Long>> idsByType) {
-		List<BaseDescriptor> results = new ArrayList<>();
-		for (ModelType type : idsByType.keySet()) {
-			Set<Long> typeIds = idsByType.get(type);
-			if (typeIds.isEmpty())
+	static List<Reference> applyOwnerMaps(
+			List<Reference> references,
+			Map<Long, Class<? extends AbstractEntity>> ownerTypes,
+			Map<Long, Long> ownerIds,
+			Map<Class<? extends AbstractEntity>, Map<Class<? extends AbstractEntity>, String>> nestedProperties) {
+		List<Reference> results = new ArrayList<>();
+		for (Reference r : references) {
+			if (!ownerTypes.containsKey(r.ownerId)
+					|| !ownerIds.containsKey(r.ownerId)) {
+				results.add(r);
 				continue;
-			if (type.isCategorized())
-				results.addAll(loadDescriptors(type, typeIds));
-			else if (type == ModelType.UNIT)
-				results.addAll(loadUnitDescriptors(typeIds));
-			else if (type == ModelType.IMPACT_CATEGORY)
-				results.addAll(loadImpactCategoryDescriptors(typeIds));
-			else if (type == ModelType.UNKNOWN)
-				results.addAll(createUnknownDescriptors(typeIds));
+			}
+			Class<? extends AbstractEntity> ownerType = ownerTypes
+					.get(r.ownerId);
+			long ownerId = ownerIds.get(r.ownerId);
+			String nestedProperty = getNestedProperty(r.getType(), ownerType,
+					nestedProperties);
+			results.add(new Reference(r.property, r.getType(), r.id, ownerType,
+					ownerId, nestedProperty, r.getOwnerType(), r.ownerId,
+					r.optional));
 		}
 		return results;
 	}
 
-	private List<CategorizedDescriptor> loadDescriptors(ModelType type,
-			Set<Long> ids) {
-		CategorizedEntityDao<?, ? extends CategorizedDescriptor> dao = Daos
-				.createCategorizedDao(database, type);
-		return new ArrayList<>(dao.getDescriptors(ids));
+	private static String getNestedProperty(
+			Class<? extends AbstractEntity> type,
+			Class<? extends AbstractEntity> ownerType,
+			Map<Class<? extends AbstractEntity>, Map<Class<? extends AbstractEntity>, String>> nestedProperties) {
+		String defaultValue = "unknown";
+		Map<Class<? extends AbstractEntity>, String> map = nestedProperties
+				.get(ownerType);
+		if (map == null)
+			return defaultValue;
+		String value = map.get(type);
+		if (value == null)
+			return defaultValue;
+		return value;
 	}
 
-	private List<UnitDescriptor> loadUnitDescriptors(Set<Long> ids) {
-		UnitDao dao = new UnitDao(database);
-		return new ArrayList<>(dao.getDescriptors(ids));
-	}
+	final static class Ref {
 
-	private List<ImpactCategoryDescriptor> loadImpactCategoryDescriptors(
-			Set<Long> ids) {
-		ImpactCategoryDao dao = new ImpactCategoryDao(database);
-		return new ArrayList<>(dao.getDescriptors(ids));
-	}
+		final String property;
+		final Class<? extends AbstractEntity> type;
+		final String nestedProperty;
+		final Class<? extends AbstractEntity> nestedType;
+		final String field;
+		final boolean optional;
 
-	private List<BaseDescriptor> createUnknownDescriptors(Set<Long> ids) {
-		List<BaseDescriptor> descriptors = new ArrayList<>();
-		for (long id : ids) {
-			BaseDescriptor descriptor = new BaseDescriptor();
-			descriptor.setId(id);
-			descriptors.add(descriptor);
-		}
-		return descriptors;
-	}
-
-	static String asSqlList(Object[] values) {
-		StringBuilder builder = new StringBuilder();
-		for (int i = 0; i < values.length; i++) {
-			if (i != 0)
-				builder.append(',');
-			builder.append(values[i].toString());
-		}
-		return builder.toString();
-	}
-
-	final static class Reference {
-
-		private ModelType type;
-		private String field;
-		private boolean optional;
-
-		Reference(ModelType type, String field) {
-			this(type, field, false);
+		Ref(Class<? extends AbstractEntity> type, String property, String field) {
+			this(type, property, null, null, field, false);
 		}
 
-		Reference(ModelType type, String field, boolean optional) {
+		Ref(Class<? extends AbstractEntity> type, String property,
+				String field, boolean optional) {
+			this(type, property, null, null, field, optional);
+		}
+
+		Ref(Class<? extends AbstractEntity> type, String property,
+				Class<? extends AbstractEntity> nestedType,
+				String nestedProperty, String field) {
+			this(type, property, nestedType, nestedProperty, field, false);
+		}
+
+		Ref(Class<? extends AbstractEntity> type, String property,
+				Class<? extends AbstractEntity> nestedType,
+				String nestedProperty, String field, boolean optional) {
 			this.type = type;
+			this.property = property;
+			this.nestedType = nestedType;
+			this.nestedProperty = nestedProperty;
 			this.field = field;
 			this.optional = optional;
 		}
