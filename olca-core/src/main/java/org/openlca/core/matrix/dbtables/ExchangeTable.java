@@ -72,6 +72,7 @@ public class ExchangeTable {
 			ArrayList<PicoExchange> list = cache.get(e.processID);
 			if (list == null) {
 				list = new ArrayList<>();
+				cache.put(e.processID, list);
 			}
 			list.add(e);
 		});
