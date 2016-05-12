@@ -60,15 +60,6 @@ public class ExchangeTable {
 	}
 
 	private void fillCache(List<Long> processIDs) {
-		StringBuilder listStr = new StringBuilder();
-		listStr.append('(');
-		for (int i = 0; i < processIDs.size(); i++) {
-			listStr.append(processIDs.get(i).toString());
-			if (i < (processIDs.size() - 1)) {
-				listStr.append(',');
-			}
-		}
-		listStr.append(')');
 		String sql = "SELECT id, f_owner, f_flow, f_default_provider, f_currency, "
 				+ "f_flow_property_factor, f_unit, resulting_amount_value, cost_value, "
 				+ "resulting_amount_formula, cost_formula, is_input, avoided_product ";
@@ -76,8 +67,7 @@ public class ExchangeTable {
 			sql += ", distribution_type, parameter1_value, parameter2_value, parameter3_value, "
 					+ "parameter1_formula, parameter2_formula, parameter3_formula ";
 		}
-		sql += "from tbl_exchanges where f_owner in " + listStr.toString();
-		// TODO load uncertainties if required
+		sql += "from tbl_exchanges where f_owner in " + Util.toSql(processIDs);
 		query.exec(sql, e -> {
 			ArrayList<PicoExchange> list = cache.get(e.processID);
 			if (list == null) {

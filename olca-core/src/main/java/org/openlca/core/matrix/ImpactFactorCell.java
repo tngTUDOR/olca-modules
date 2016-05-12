@@ -42,7 +42,7 @@ class ImpactFactorCell {
 	private void tryEval(Scope scope) throws Exception {
 		if (factor.amountFormula != null) {
 			double v = scope.eval(factor.amountFormula);
-			factor.amount = v;
+			factor.amount = v * factor.conversionFactor;
 		}
 		PicoUncertainty u = factor.uncertainty;
 		if (u == null)
@@ -64,7 +64,7 @@ class ImpactFactorCell {
 	double getMatrixValue() {
 		if (factor == null)
 			return 0;
-		double amount = factor.amount * factor.conversionFactor;
+		double amount = factor.amount;
 		return inputFlow ? -amount : amount;
 	}
 
