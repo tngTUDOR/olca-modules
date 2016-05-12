@@ -1,9 +1,9 @@
 package org.openlca.core.math;
 
 import org.openlca.core.database.EntityCache;
+import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.ImpactMethodDao;
 import org.openlca.core.database.NwSetDao;
-import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.model.Project;
 import org.openlca.core.model.ProjectVariant;
 import org.openlca.core.model.descriptors.ImpactMethodDescriptor;
@@ -14,16 +14,16 @@ import org.openlca.core.results.ProjectResultProvider;
 public class ProjectCalculator {
 
 	private final IMatrixSolver solver;
-	private final MatrixCache matrixCache;
+	private final IDatabase db;
 
-	public ProjectCalculator(MatrixCache matrixCache, IMatrixSolver solver) {
-		this.matrixCache = matrixCache;
+	public ProjectCalculator(IDatabase db, IMatrixSolver solver) {
+		this.db = db;
 		this.solver = solver;
 	}
 
 	public ProjectResultProvider solve(Project project, EntityCache cache) {
 		ProjectResultProvider result = new ProjectResultProvider(cache);
-		SystemCalculator calculator = new SystemCalculator(matrixCache, solver);
+		SystemCalculator calculator = new SystemCalculator(db, solver);
 		ImpactMethodDescriptor method = getImpactMethod(project);
 		NwSetDescriptor nwSet = getNwSet(project);
 		for (ProjectVariant v : project.getVariants()) {
@@ -45,14 +45,14 @@ public class ProjectCalculator {
 	private ImpactMethodDescriptor getImpactMethod(Project project) {
 		if (project.getImpactMethodId() == null)
 			return null;
-		ImpactMethodDao dao = new ImpactMethodDao(matrixCache.getDatabase());
+		ImpactMethodDao dao = new ImpactMethodDao(db);
 		return dao.getDescriptor(project.getImpactMethodId());
 	}
 
 	private NwSetDescriptor getNwSet(Project project) {
 		if (project.getNwSetId() == null)
 			return null;
-		NwSetDao dao = new NwSetDao(matrixCache.getDatabase());
+		NwSetDao dao = new NwSetDao(db);
 		return dao.getDescriptor(project.getNwSetId());
 	}
 }

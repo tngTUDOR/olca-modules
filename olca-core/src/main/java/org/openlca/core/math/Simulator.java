@@ -1,8 +1,8 @@
 package org.openlca.core.math;
 
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.matrix.AssessmentMatrix;
 import org.openlca.core.matrix.Assessment;
+import org.openlca.core.matrix.AssessmentMatrix;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.InventoryMatrix;
 import org.openlca.core.matrix.ParameterTable;
@@ -88,7 +88,7 @@ public class Simulator {
 		result.productIndex = inventory.techIndex;
 		result.flowIndex = inventory.flowIndex;
 		if (impactMethod != null) {
-			Assessment impactTable = Assessment.build(cache,
+			Assessment impactTable = Assessment.build(db,
 					impactMethod.getId(), inventory.flowIndex);
 			if (impactTable.isEmpty()) {
 				return;

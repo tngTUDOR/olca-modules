@@ -1,8 +1,8 @@
 package org.openlca.core.matrix;
 
+import org.openlca.core.database.IDatabase;
 import org.openlca.core.math.IMatrix;
 import org.openlca.core.math.IMatrixFactory;
-import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.expressions.FormulaInterpreter;
 
 /**
@@ -15,9 +15,9 @@ public class Assessment {
 	public FlowIndex flowIndex;
 	public ImpactFactorMatrix factorMatrix;
 
-	public static Assessment build(MatrixCache cache, long impactMethodId,
+	public static Assessment build(IDatabase db, long impactMethodId,
 			FlowIndex flowIndex) {
-		return new AssessmemtBuilder(cache, impactMethodId, flowIndex).build();
+		return new AssessmemtBuilder(db, impactMethodId, flowIndex).build();
 	}
 
 	public boolean isEmpty() {

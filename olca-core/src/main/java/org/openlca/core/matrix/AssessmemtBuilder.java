@@ -1,71 +1,56 @@
 package org.openlca.core.matrix;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.database.IDatabase;
+import org.openlca.core.matrix.dbtables.ImpactFactorTable;
 import org.openlca.core.matrix.dbtables.PicoImpactFactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.primitives.Longs;
 
 class AssessmemtBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
-	private final MatrixCache cache;
+	private final IDatabase db;
 	private final long methodId;
 	private final FlowIndex flowIndex;
 
-	AssessmemtBuilder(MatrixCache cache, long impactMethodId,
-			FlowIndex flowIndex) {
-		this.cache = cache;
+	AssessmemtBuilder(IDatabase db, long impactMethodId, FlowIndex flowIndex) {
+		this.db = db;
 		this.methodId = impactMethodId;
 		this.flowIndex = flowIndex;
 	}
 
 	Assessment build() {
 		log.trace("Build impact factor matrix for method {}", methodId);
-		LongIndex categoryIndex = buildCategoryIndex();
-		if (categoryIndex.isEmpty() || flowIndex.isEmpty())
+		ImpactFactorTable factors = ImpactFactorTable.create(db, methodId);
+		LongIndex index = buildCategoryIndex(factors);
+		if (index.isEmpty() || flowIndex.isEmpty())
 			return null;
 		Assessment table = new Assessment();
-		table.categoryIndex = categoryIndex;
+		table.categoryIndex = index;
 		table.flowIndex = flowIndex;
-		ImpactFactorMatrix matrix = new ImpactFactorMatrix(
-				categoryIndex.size(), flowIndex.size());
+		ImpactFactorMatrix matrix = new ImpactFactorMatrix(index.size(),
+				flowIndex.size());
 		table.factorMatrix = matrix;
-		fill(matrix, categoryIndex);
+		fill(factors, index, matrix);
 		log.trace("Impact factor matrix ready");
 		return table;
 	}
 
-	private LongIndex buildCategoryIndex() {
+	private LongIndex buildCategoryIndex(ImpactFactorTable factors) {
 		LongIndex index = new LongIndex();
-		try (Connection con = cache.getDatabase().createConnection()) {
-			String query = "select id from tbl_impact_categories where f_impact_method = "
-					+ methodId;
-			ResultSet result = con.createStatement().executeQuery(query);
-			while (result.next()) {
-				long id = result.getLong("id");
-				index.put(id);
-			}
-			result.close();
-		} catch (Exception e) {
-			log.error("failed to build impact category index", e);
+		for (long categoryID : factors.getCategoryIds()) {
+			index.put(categoryID);
 		}
 		return index;
 	}
 
-	private void fill(ImpactFactorMatrix matrix, LongIndex categoryIndex) {
-		Map<Long, List<PicoImpactFactor>> factorMap = loadFactors(categoryIndex);
-		for (int row = 0; row < categoryIndex.size(); row++) {
-			long categoryId = categoryIndex.getKeyAt(row);
-			List<PicoImpactFactor> factors = factorMap.get(categoryId);
+	private void fill(ImpactFactorTable table, LongIndex index, ImpactFactorMatrix matrix) {
+		for (int row = 0; row < index.size(); row++) {
+			long categoryId = index.getKeyAt(row);
+			List<PicoImpactFactor> factors = table.get(categoryId);
 			if (factors == null)
 				continue;
 			for (PicoImpactFactor factor : factors) {
@@ -78,17 +63,6 @@ class AssessmemtBuilder {
 						input);
 				matrix.setEntry(row, col, cell);
 			}
-		}
-	}
-
-	private Map<Long, List<PicoImpactFactor>> loadFactors(
-			LongIndex categoryIndex) {
-		try {
-			return cache.getImpactCache().getAll(
-					Longs.asList(categoryIndex.getKeys()));
-		} catch (Exception e) {
-			log.error("failed to load impact factors");
-			return Collections.emptyMap();
 		}
 	}
 

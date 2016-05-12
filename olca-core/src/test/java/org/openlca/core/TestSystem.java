@@ -10,7 +10,6 @@ import org.openlca.core.database.EntityCache;
 import org.openlca.core.database.ProductSystemDao;
 import org.openlca.core.math.CalculationSetup;
 import org.openlca.core.math.SystemCalculator;
-import org.openlca.core.matrix.cache.MatrixCache;
 import org.openlca.core.model.Exchange;
 import org.openlca.core.model.FlowType;
 import org.openlca.core.model.Process;
@@ -94,7 +93,7 @@ public class TestSystem {
 		CalculationSetup setup = new CalculationSetup(system);
 		setup.withCosts = true;
 		SystemCalculator calc = new SystemCalculator(
-				MatrixCache.createEager(Tests.getDb()),
+				Tests.getDb(),
 				Tests.getDefaultSolver());
 		FullResult fr = calc.calculateFull(setup);
 		return new FullResultProvider(fr, EntityCache.create(Tests.getDb()));
@@ -105,7 +104,7 @@ public class TestSystem {
 		CalculationSetup setup = new CalculationSetup(system);
 		setup.withCosts = true;
 		SystemCalculator calc = new SystemCalculator(
-				MatrixCache.createEager(Tests.getDb()),
+				Tests.getDb(),
 				Tests.getDefaultSolver());
 		ContributionResult cr = calc.calculateContributions(setup);
 		return new ContributionResultProvider<>(cr, EntityCache.create(Tests.getDb()));

@@ -39,6 +39,10 @@ public class ImpactFactorTable {
 			return list;
 	}
 
+	public long[] getCategoryIds() {
+		return factors.keys();
+	}
+
 	private static class Builder {
 
 		IDatabase db;

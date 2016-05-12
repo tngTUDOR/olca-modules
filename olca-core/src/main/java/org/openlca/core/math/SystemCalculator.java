@@ -1,9 +1,9 @@
 package org.openlca.core.math;
 
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.matrix.CostVector;
-import org.openlca.core.matrix.AssessmentMatrix;
 import org.openlca.core.matrix.Assessment;
+import org.openlca.core.matrix.AssessmentMatrix;
+import org.openlca.core.matrix.CostVector;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.InventoryMatrix;
 import org.openlca.core.matrix.ParameterTable;
@@ -49,7 +49,7 @@ public class SystemCalculator {
 				solver.getMatrixFactory(), interpreter);
 		LcaCalculator calculator = new LcaCalculator(solver, inventoryMatrix);
 		if (setup.impactMethod != null) {
-			Assessment impactTable = Assessment.build(matrixCache,
+			Assessment impactTable = Assessment.build(db,
 					setup.impactMethod.getId(), inventory.flowIndex);
 			AssessmentMatrix impactMatrix = impactTable.createMatrix(
 					solver.getMatrixFactory(), interpreter);

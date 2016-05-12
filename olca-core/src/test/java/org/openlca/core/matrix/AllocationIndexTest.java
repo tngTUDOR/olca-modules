@@ -5,7 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.openlca.core.Tests;
 import org.openlca.core.database.IDatabase;
-import org.openlca.core.matrix.cache.MatrixCache;
+import org.openlca.core.matrix.dbtables.PicoExchange;
 import org.openlca.core.model.AllocationMethod;
 
 public class AllocationIndexTest {
@@ -17,9 +17,9 @@ public class AllocationIndexTest {
 		TechIndex index = new TechIndex(
 				LongPair.of(999999999, 999999999));
 		AllocationIndex allocationIndex = AllocationIndex.create(index,
-				AllocationMethod.USE_DEFAULT, MatrixCache.createLazy(database));
+				AllocationMethod.USE_DEFAULT, database);
 		double f = allocationIndex.getFactor(index.getRefFlow(),
-				new CalcExchange());
+				new PicoExchange());
 		assertEquals(1.0, f, 1e-16);
 	}
 
