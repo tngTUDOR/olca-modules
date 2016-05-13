@@ -74,6 +74,13 @@ class Util {
 		return getId(refMap, type);
 	}
 
+	static <T extends RootEntity> T get(Collection<T> list, T entity) {
+		if (list == null || entity == null)
+			return null;
+		else
+			return get(list, entity.getRefId());
+	}
+
 	static <T extends RootEntity> T get(Collection<T> list, String id) {
 		if (list == null || id == null)
 			return null;

@@ -1,6 +1,5 @@
 # units and physical quantities
-- unitGroup:
-    &Units_of_mass
+- unitGroup: &Units_of_mass
     name: Units of mass
     units:
       - &kg
@@ -8,27 +7,23 @@
         factor: 1.0
     refUnit: *kg
 
-- quantity:
-    &Mass
+- quantity: &Mass
     name: Mass
     unitGroup: *Units_of_mass
 
 # flows
-- flow:
-    &CO2
+- flow: &CO2
     type: elementary
     name: carbon dioxide
     refQuantity: *Mass
 
-- flow:
-    &Steel
+- flow: &Steel
     type: product
     name: Steel
     refQuantity: *Mass
 
 # processes
-- process:
-    &Steel_production
+- process: &Steel_production
     name: Steel production
     type: lci
     outputs:

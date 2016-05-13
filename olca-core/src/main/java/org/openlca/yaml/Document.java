@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.openlca.core.database.IDatabase;
 import org.openlca.core.model.Flow;
 import org.openlca.core.model.FlowProperty;
 import org.openlca.core.model.ModelType;
@@ -116,4 +117,12 @@ public class Document {
 			break;
 		}
 	}
+
+	/**
+	 * Synchronizes the document with the given database.
+	 */
+	public void sync(IDatabase db) {
+		new DatabaseSync(db, this).run();
+	}
+
 }
