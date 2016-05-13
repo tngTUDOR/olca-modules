@@ -1,0 +1,26 @@
+- unitGroup: &Units_of_mass
+    name: Units of mass
+    units:
+      - &kg
+        name: kg
+        factor: 1.0
+    refUnit: *kg
+    
+- quantity: &Mass
+    name: Mass
+    unitGroup: *Units_of_mass
+    
+- flow: &Steel
+    type: product
+    name: Steel
+    refQuantity: *Mass
+
+- flow: &CO2
+    type: elementary
+    name: CO2
+    refQuantity: *Mass  
+
+- flow: &Waste_paper
+    type: waste
+    name: Waste paper
+    refQuantity: *Mass
