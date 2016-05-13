@@ -1,0 +1,43 @@
+- unitGroup: &Units_of_mass
+    name: Units of mass
+    units:
+      - &kg
+        name: kg
+        factor: 1.0
+    refUnit: *kg
+    
+- quantity: &Mass
+    name: Mass
+    unitGroup: *Units_of_mass
+
+- flow: &ABS_product
+    type: product
+    name: ABS    
+    refQuantity: *Mass
+
+- flow: &Crude_oil
+    type: elementary
+    name: Crude oil
+    refQuantity: *Mass
+
+- flow: &CO2
+    type: elementary
+    name: CO2
+    refQuantity: *Mass
+
+- process: &ABS_process
+    name: ABS
+    type: lci
+    inputs:
+      - flow: *Crude_oil
+        amount: 0.98
+        unit: *kg
+    outputs:
+      - &ABS_process_product
+        flow: *ABS_product
+        amount: 1
+        unit: *kg
+      - flow: *CO2
+        amount: 3.05
+        unit: *kg
+    refFlow: *ABS_process_product

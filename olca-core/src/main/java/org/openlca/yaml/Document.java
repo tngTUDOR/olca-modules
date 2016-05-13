@@ -12,6 +12,7 @@ import org.openlca.core.database.IDatabase;
 import org.openlca.core.model.Flow;
 import org.openlca.core.model.FlowProperty;
 import org.openlca.core.model.ModelType;
+import org.openlca.core.model.Process;
 import org.openlca.core.model.UnitGroup;
 import org.yaml.snakeyaml.Yaml;
 
@@ -20,6 +21,7 @@ public class Document {
 	public final List<UnitGroup> unitGroups = new ArrayList<>();
 	public final List<FlowProperty> flowProperties = new ArrayList<>();
 	public final List<Flow> flows = new ArrayList<>();
+	public final List<Process> processes = new ArrayList<>();
 
 	public static Document read(InputStream is) {
 		return parse(new Yaml().load(is));
@@ -43,7 +45,6 @@ public class Document {
 			if (elem instanceof Map) {
 				maps.add((Map<?, ?>) elem);
 			}
-			System.out.println(elem);
 		}
 		Collections.sort(maps, (m1, m2) -> {
 			ModelType t1 = getType(m1);
@@ -111,6 +112,9 @@ public class Document {
 			break;
 		case FLOW:
 			new FlowReader(doc).read(map);
+			break;
+		case PROCESS:
+			new ProcessReader(doc).read(map);
 			break;
 		default:
 			System.err.println("No converter for model type " + type);

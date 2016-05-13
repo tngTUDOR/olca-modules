@@ -9,7 +9,7 @@ import org.openlca.util.KeyGen;
 
 class Util {
 
-	public static void setBaseAttributes(RootEntity entity, Map<?, ?> map) {
+	static void setBaseAttributes(RootEntity entity, Map<?, ?> map) {
 		if (entity == null || map == null)
 			return;
 		entity.setName(str(map, "name"));

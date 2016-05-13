@@ -88,6 +88,31 @@ following type values:
   produces waste to a process that treats that waste in an input.
 * `elementary`: elementary flows cannot be linked
 
+TODO: quantities in flows
 
+### Processes
 
+```yaml
+- process: &ABS_process
+    name: ABS
+    type: lci
+    inputs:
+      - flow: *Crude_oil
+        amount: 0.98
+        unit: *kg
+    outputs:
+      - &ABS_process_product
+        flow: *ABS_product
+        amount: 1
+        unit: *kg
+      - flow: *CO2
+        amount: 3.05
+        unit: *kg
+    refFlow: *ABS_process_product
+```
+
+#### Process type
+The `type` field of the process can have the values `lci` (LCI result) or `unit`
+(unit process). If the field is missing the process will be classified as an
+unit process.
 
