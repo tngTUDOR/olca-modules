@@ -1,0 +1,72 @@
+- unitGroup: &Units_of_mass
+    name: Units of mass
+    units:
+      - &kg
+        name: kg
+        factor: 1.0
+    refUnit: *kg
+    
+- quantity: &Mass
+    name: Mass
+    unitGroup: *Units_of_mass
+
+- flow: &Product
+    type: product
+    name: Product
+    refQuantity: *Mass
+
+- flow: &Waste
+    type: waste
+    name: Waste
+    refQuantity: *Mass
+
+- flow: &CO2
+    type: elementary
+    name: CO2
+    refQuantity: *Mass
+
+# unit process with an output product
+- process: &Producer
+    type: unit
+    name: Producer
+    outputs:
+      - flow: *Product
+        amount: 1
+        unit: *kg
+      - flow: *CO2
+        amount: 0.5
+        unit: *kg
+
+# LCI result with an product output
+- process: &Producer_lci
+    type: lci
+    name: Producer (LCI)
+    outputs:
+      - flow: *Product
+        amount: 1
+        unit: *kg
+
+# waste treatement process
+- process: &Waste_treatment
+    type: unit
+    name: Waste treatment
+    inputs:
+      - flow: *Waste
+        amount: 1
+        unit: *kg
+    outputs:
+      - flow: *CO2
+        amount: 0.8
+        unit: *kg
+
+# a process that consumes the product and produces waste
+- process: &Consumer
+    type: unit
+    inputs:
+      - flow: *Product
+        amount: 1
+        unit: *kg
+    outputs:
+      - flow: *Waste
+        amount: 0.5
+        unit: *kg
