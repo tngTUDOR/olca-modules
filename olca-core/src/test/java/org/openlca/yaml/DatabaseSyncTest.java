@@ -11,9 +11,11 @@ import org.openlca.core.Tests;
 import org.openlca.core.database.FlowDao;
 import org.openlca.core.database.FlowPropertyDao;
 import org.openlca.core.database.IDatabase;
+import org.openlca.core.database.ProcessDao;
 import org.openlca.core.database.UnitGroupDao;
 import org.openlca.core.model.Flow;
 import org.openlca.core.model.FlowProperty;
+import org.openlca.core.model.Process;
 import org.openlca.core.model.UnitGroup;
 
 public class DatabaseSyncTest {
@@ -58,5 +60,15 @@ public class DatabaseSyncTest {
 		Flow f = list.get(0);
 		Assert.assertEquals("Mass", f.getReferenceFactor()
 				.getFlowProperty().getName());
+	}
+
+	@Test
+	public void testProcess() {
+		ProcessDao dao = new ProcessDao(db);
+		List<Process> list = dao.getAll();
+		Assert.assertEquals(1, list.size());
+		Process p = list.get(0);
+		Assert.assertEquals("Steel production", p.getName());
+		Assert.assertEquals(2, p.getExchanges().size());
 	}
 }

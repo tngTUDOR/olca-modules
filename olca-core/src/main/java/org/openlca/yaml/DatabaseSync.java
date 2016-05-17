@@ -3,10 +3,12 @@ package org.openlca.yaml;
 import org.openlca.core.database.FlowDao;
 import org.openlca.core.database.FlowPropertyDao;
 import org.openlca.core.database.IDatabase;
+import org.openlca.core.database.ProcessDao;
 import org.openlca.core.database.UnitGroupDao;
 import org.openlca.core.model.Flow;
 import org.openlca.core.model.FlowProperty;
 import org.openlca.core.model.FlowPropertyFactor;
+import org.openlca.core.model.Process;
 import org.openlca.core.model.UnitGroup;
 
 class DatabaseSync {
@@ -23,6 +25,7 @@ class DatabaseSync {
 		unitGroups();
 		flowProperties();
 		flows();
+		processes();
 	}
 
 	private void unitGroups() {
@@ -75,6 +78,20 @@ class DatabaseSync {
 				fac.setFlowProperty(prop);
 			}
 			dao.insert(docFlow);
+		}
+	}
+
+	private void processes() {
+		ProcessDao dao = new ProcessDao(db);
+		for (int i = 0; i < doc.processes.size(); i++) {
+			Process docProc = doc.processes.get(i);
+			Process dbProc = dao.getForRefId(docProc.getRefId());
+			if (dbProc != null) {
+				doc.processes.set(i, dbProc);
+				continue;
+			}
+			ExchangeSync.on(docProc, doc);
+			dao.insert(docProc);
 		}
 	}
 
