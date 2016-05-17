@@ -14,7 +14,7 @@ public class AllocationIndexTest {
 
 	@Test
 	public void testDefaultFactor() {
-		TechIndex index = new TechIndex(
+		TechGraph index = new TechGraph(
 				LongPair.of(999999999, 999999999));
 		AllocationIndex allocationIndex = AllocationIndex.create(index,
 				AllocationMethod.USE_DEFAULT, database);

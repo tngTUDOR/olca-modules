@@ -7,7 +7,7 @@ import org.openlca.core.database.IDatabase;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.LongPair;
 import org.openlca.core.matrix.ParameterTable;
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 import org.openlca.core.model.AllocationMethod;
 import org.openlca.core.model.Exchange;
 import org.openlca.core.model.Flow;
@@ -27,13 +27,13 @@ public class DataStructures {
 	/**
 	 * Creates a product index from the given product system.
 	 */
-	public static TechIndex createProductIndex(ProductSystem system) {
+	public static TechGraph createProductIndex(ProductSystem system) {
 		Process refProcess = system.getReferenceProcess();
 		Exchange refExchange = system.getReferenceExchange();
 		Flow refFlow = refExchange.getFlow();
 		LongPair refProduct = new LongPair(refProcess.getId(), refFlow.getId());
 		double demand = ReferenceAmount.get(system);
-		TechIndex index = new TechIndex(refProduct);
+		TechGraph index = new TechGraph(refProduct);
 		index.setDemand(demand);
 		for (ProcessLink link : system.getProcessLinks()) {
 			long flow = link.getFlowId();
@@ -48,14 +48,14 @@ public class DataStructures {
 	}
 
 	public static Inventory createInventory(ProductSystem system, IDatabase db) {
-		TechIndex index = createProductIndex(system);
+		TechGraph index = createProductIndex(system);
 		AllocationMethod method = AllocationMethod.USE_DEFAULT;
 		return Inventory.build(index, db, method);
 	}
 
 	public static Inventory createInventory(ProductSystem system,
 			AllocationMethod allocationMethod, IDatabase db) {
-		TechIndex index = createProductIndex(system);
+		TechGraph index = createProductIndex(system);
 		return Inventory.build(index, db, allocationMethod);
 	}
 
@@ -64,7 +64,7 @@ public class DataStructures {
 		AllocationMethod method = setup.allocationMethod;
 		if (method == null)
 			method = AllocationMethod.NONE;
-		TechIndex index = createProductIndex(system);
+		TechGraph index = createProductIndex(system);
 		index.setDemand(ReferenceAmount.get(setup));
 		return Inventory.build(index, db, method);
 	}

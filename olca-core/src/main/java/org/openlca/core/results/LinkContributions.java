@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import org.openlca.core.math.IMatrix;
 import org.openlca.core.matrix.LongPair;
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 import org.openlca.core.model.ProcessLink;
 
 /**
@@ -28,7 +28,7 @@ public class LinkContributions {
 	}
 
 	public static LinkContributions calculate(IMatrix technologyMatrix,
-			TechIndex index, double[] scalingFactors) {
+			TechGraph index, double[] scalingFactors) {
 		LinkContributions contributions = new LinkContributions();
 		contributions.calculateShares(technologyMatrix, index, scalingFactors);
 		return contributions;
@@ -60,7 +60,7 @@ public class LinkContributions {
 		return share == null ? 0 : share;
 	}
 
-	private void calculateShares(IMatrix matrix, TechIndex index,
+	private void calculateShares(IMatrix matrix, TechGraph index,
 			double[] scalingFactors) {
 		for (int i = 0; i < index.size(); i++) {
 			LongPair outProduct = index.getFlowAt(i);

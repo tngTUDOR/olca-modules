@@ -13,7 +13,7 @@ import java.util.Set;
  * {@link LongPair}, where the first entry is the ID of the process and the
  * second ID the ID of the respective exchange.
  */
-public class TechIndex {
+public class TechGraph {
 
 	/** Maps the product outputs and waste inputs to an ordinal index. */
 	private final HashMap<LongPair, Integer> index = new HashMap<>();
@@ -42,7 +42,7 @@ public class TechIndex {
 	 * @param refFlow
 	 *            the reference flow which is a product output are waste input.
 	 */
-	public TechIndex(LongPair refFlow) {
+	public TechGraph(LongPair refFlow) {
 		this.refFlow = refFlow;
 		put(refFlow);
 	}

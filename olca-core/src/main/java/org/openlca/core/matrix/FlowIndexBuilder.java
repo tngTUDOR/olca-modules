@@ -21,10 +21,10 @@ class FlowIndexBuilder {
 	private Logger log = LoggerFactory.getLogger(getClass());
 
 	private final ExchangeTable exchanges;
-	private final TechIndex productIndex;
+	private final TechGraph productIndex;
 	private final AllocationMethod allocationMethod;
 
-	FlowIndexBuilder(ExchangeTable exchanges, TechIndex productIndex,
+	FlowIndexBuilder(ExchangeTable exchanges, TechGraph productIndex,
 			AllocationMethod allocationMethod) {
 		this.allocationMethod = allocationMethod;
 		this.exchanges = exchanges;

@@ -1,12 +1,12 @@
 package org.openlca.core.matrix.product.index;
 
 import org.openlca.core.matrix.LongPair;
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 
 public interface IProductIndexBuilder {
 
-	TechIndex build(LongPair refProduct);
+	TechGraph build(LongPair refProduct);
 
-	TechIndex build(LongPair refProduct, double demand);
+	TechGraph build(LongPair refProduct, double demand);
 
 }

@@ -11,13 +11,13 @@ import org.openlca.expressions.FormulaInterpreter;
  */
 public class Inventory {
 
-	public TechIndex techIndex;
+	public TechGraph techIndex;
 	public FlowIndex flowIndex;
 	public ExchangeMatrix technologyMatrix;
 	public ExchangeMatrix interventionMatrix;
 	public AllocationMethod allocationMethod;
 
-	public static Inventory build(TechIndex techIndex, IDatabase db,
+	public static Inventory build(TechGraph techIndex, IDatabase db,
 			AllocationMethod allocationMethod) {
 		return new InventoryBuilder(techIndex, db)
 				.allocation(allocationMethod)

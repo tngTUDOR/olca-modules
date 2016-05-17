@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.openlca.core.database.EntityCache;
 import org.openlca.core.matrix.LongPair;
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 import org.openlca.core.model.Category;
 import org.openlca.core.model.Location;
 import org.openlca.core.model.descriptors.FlowDescriptor;
@@ -32,7 +32,7 @@ class ProductInfo implements Comparable<ProductInfo> {
 	private String productUnit;
 
 	public static List<ProductInfo> getAll(SystemExportConfig conf,
-			TechIndex index) {
+			TechGraph index) {
 		EntityCache cache = conf.getEntityCache();
 		List<ProductInfo> infos = new ArrayList<>(index.size() + 2);
 		for (int i = 0; i < index.size(); i++) {

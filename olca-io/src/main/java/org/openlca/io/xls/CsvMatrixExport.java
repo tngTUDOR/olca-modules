@@ -12,7 +12,7 @@ import org.openlca.core.matrix.ExchangeMatrix;
 import org.openlca.core.matrix.FlowIndex;
 import org.openlca.core.matrix.Inventory;
 import org.openlca.core.matrix.LongPair;
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 import org.openlca.core.model.descriptors.FlowDescriptor;
 import org.openlca.io.CategoryPair;
 import org.openlca.io.DisplayValues;
@@ -67,7 +67,7 @@ public class CsvMatrixExport implements Runnable {
 	private void writeTechMatrix(Inventory inventory, BufferedWriter buffer)
 			throws Exception {
 		ExchangeMatrix techMatrix = inventory.technologyMatrix;
-		TechIndex productIndex = inventory.techIndex;
+		TechGraph productIndex = inventory.techIndex;
 		int size = productIndex.size();
 		for (int row = 0; row < size; row++) {
 			LongPair product = productIndex.getFlowAt(row);
@@ -96,7 +96,7 @@ public class CsvMatrixExport implements Runnable {
 
 	private void writeEnviMatrix(Inventory inventory, BufferedWriter buffer)
 			throws Exception {
-		TechIndex productIndex = inventory.techIndex;
+		TechGraph productIndex = inventory.techIndex;
 		FlowIndex flowIndex = inventory.flowIndex;
 		int rows = flowIndex.size();
 		int columns = productIndex.size();
@@ -119,7 +119,7 @@ public class CsvMatrixExport implements Runnable {
 	}
 
 	private void writeEnviMatrixHeader(BufferedWriter buffer,
-			TechIndex productIndex) throws Exception, IOException {
+			TechGraph productIndex) throws Exception, IOException {
 		sep(buffer);
 		sep(buffer);
 		int columns = productIndex.size();

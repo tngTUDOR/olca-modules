@@ -29,12 +29,12 @@ class AllocationIndex {
 	 */
 	private HashMap<LongPair, TLongDoubleHashMap> exchangeFactors;
 
-	public static AllocationIndex create(TechIndex productIndex,
+	public static AllocationIndex create(TechGraph productIndex,
 			AllocationMethod method, IDatabase db) {
 		return new AllocationIndex(productIndex, method, db);
 	}
 
-	private AllocationIndex(TechIndex productIndex, AllocationMethod method,
+	private AllocationIndex(TechGraph productIndex, AllocationMethod method,
 			IDatabase db) {
 		this.method = method;
 		AllocationTable table = AllocationTable.create(db);

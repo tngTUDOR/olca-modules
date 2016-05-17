@@ -9,7 +9,7 @@ import java.util.Stack;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.openlca.core.matrix.LongPair;
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 import org.openlca.core.model.ModelType;
 import org.openlca.core.model.descriptors.BaseDescriptor;
 import org.openlca.core.model.descriptors.FlowDescriptor;
@@ -29,7 +29,7 @@ class UpstreamTreeCalculator {
 		this.links = makeLinks(result.productIndex);
 	}
 
-	private Multimap<LongPair, LongPair> makeLinks(TechIndex index) {
+	private Multimap<LongPair, LongPair> makeLinks(TechGraph index) {
 		Multimap<LongPair, LongPair> links = ArrayListMultimap.create();
 		for (LongPair input : index.getLinkedFlows()) {
 			long recipientProcess = input.getFirst();

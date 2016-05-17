@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 class InventoryBuilder {
 
-	private final TechIndex techIndex;
+	private final TechGraph techIndex;
 	private final IDatabase db;
 
 	private AllocationMethod allocation;
@@ -24,7 +24,7 @@ class InventoryBuilder {
 	private ExchangeMatrix technologyMatrix;
 	private ExchangeMatrix interventionMatrix;
 
-	InventoryBuilder(TechIndex techIndex, IDatabase db) {
+	InventoryBuilder(TechGraph techIndex, IDatabase db) {
 		this.techIndex = techIndex;
 		this.db = db;
 	}

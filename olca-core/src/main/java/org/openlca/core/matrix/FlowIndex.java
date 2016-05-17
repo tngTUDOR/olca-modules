@@ -14,7 +14,7 @@ public class FlowIndex {
 	private LongIndex flowIndex = new LongIndex();
 	private TLongByteHashMap inputMap = new TLongByteHashMap();
 
-	public static FlowIndex build(ExchangeTable exchanges, TechIndex techIndex,
+	public static FlowIndex build(ExchangeTable exchanges, TechGraph techIndex,
 			AllocationMethod allocationMethod) {
 		return new FlowIndexBuilder(exchanges, techIndex, allocationMethod).build();
 	}

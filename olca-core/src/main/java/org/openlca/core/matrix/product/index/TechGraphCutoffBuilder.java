@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.openlca.core.matrix.LongPair;
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 import org.openlca.core.matrix.dbtables.ExchangeTable;
 import org.openlca.core.matrix.dbtables.PicoExchange;
 import org.openlca.core.matrix.dbtables.ProviderTable;
@@ -17,7 +17,7 @@ import org.openlca.core.model.FlowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TechIndexCutoffBuilder implements IProductIndexBuilder {
+public class TechGraphCutoffBuilder implements IProductIndexBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -25,22 +25,22 @@ public class TechIndexCutoffBuilder implements IProductIndexBuilder {
 	private ProviderTable providers;
 	private double cutoff;
 
-	public TechIndexCutoffBuilder(ExchangeTable exchanges, ProviderTable providers, double cutoff) {
+	public TechGraphCutoffBuilder(ExchangeTable exchanges, ProviderTable providers, double cutoff) {
 		this.exchanges = exchanges;
 		this.providers = providers;
 		this.cutoff = cutoff;
 	}
 
 	@Override
-	public TechIndex build(LongPair refProduct) {
+	public TechGraph build(LongPair refProduct) {
 		return build(refProduct, 1.0);
 	}
 
 	@Override
-	public TechIndex build(LongPair refProduct, double demand) {
+	public TechGraph build(LongPair refProduct, double demand) {
 		log.trace("build product index for {} with cutoff=", refProduct,
 				cutoff);
-		TechIndex index = new TechIndex(refProduct);
+		TechGraph index = new TechGraph(refProduct);
 		index.setDemand(demand);
 		Graph g = new Graph(refProduct, demand);
 		while (!g.next.isEmpty())
@@ -50,7 +50,7 @@ public class TechIndexCutoffBuilder implements IProductIndexBuilder {
 		return index;
 	}
 
-	private void fillIndex(Graph g, TechIndex index) {
+	private void fillIndex(Graph g, TechGraph index) {
 		for (Node node : g.nodes.values()) {
 			if (node.state != NodeState.FOLLOWED)
 				continue;

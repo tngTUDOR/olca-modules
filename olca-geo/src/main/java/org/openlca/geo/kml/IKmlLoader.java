@@ -2,10 +2,10 @@ package org.openlca.geo.kml;
 
 import java.util.List;
 
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 
 public interface IKmlLoader {
 	
-	List<LocationKml> load(TechIndex index);
+	List<LocationKml> load(TechGraph index);
 
 }

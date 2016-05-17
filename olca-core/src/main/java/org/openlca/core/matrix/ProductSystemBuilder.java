@@ -11,8 +11,8 @@ import org.openlca.core.database.NativeSql.BatchInsertHandler;
 import org.openlca.core.matrix.dbtables.ExchangeTable;
 import org.openlca.core.matrix.dbtables.ProviderTable;
 import org.openlca.core.matrix.product.index.IProductIndexBuilder;
-import org.openlca.core.matrix.product.index.TechIndexBuilder;
-import org.openlca.core.matrix.product.index.TechIndexCutoffBuilder;
+import org.openlca.core.matrix.product.index.TechGraphBuilder;
+import org.openlca.core.matrix.product.index.TechGraphCutoffBuilder;
 import org.openlca.core.model.Flow;
 import org.openlca.core.model.Process;
 import org.openlca.core.model.ProcessLink;
@@ -71,7 +71,7 @@ public class ProductSystemBuilder {
 	private void run(ProductSystem system, LongPair processProduct) {
 		log.trace("build product index");
 		IProductIndexBuilder builder = getProductIndexBuilder();
-		TechIndex index = builder.build(processProduct);
+		TechGraph index = builder.build(processProduct);
 		log.trace(
 				"built a product index with {} process products and {} links",
 				index.size(), index.getLinkedFlows().size());
@@ -83,12 +83,12 @@ public class ProductSystemBuilder {
 		ExchangeTable exchanges = ExchangeTable.create(database);
 		ProviderTable providers = ProviderTable.create(database, preferredType);
 		if (cutoff == null || cutoff == 0)
-			return new TechIndexBuilder(exchanges, providers);
+			return new TechGraphBuilder(exchanges, providers);
 		else
-			return new TechIndexCutoffBuilder(exchanges, providers, cutoff);
+			return new TechGraphCutoffBuilder(exchanges, providers, cutoff);
 	}
 
-	private void addLinksAndProcesses(ProductSystem system, TechIndex index) {
+	private void addLinksAndProcesses(ProductSystem system, TechGraph index) {
 		ProcessLinkIndex links = new ProcessLinkIndex();
 		TLongHashSet processes = new TLongHashSet(Constants.DEFAULT_CAPACITY,
 				Constants.DEFAULT_LOAD_FACTOR, -1);

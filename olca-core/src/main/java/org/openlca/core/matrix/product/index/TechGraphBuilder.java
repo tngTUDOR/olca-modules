@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.openlca.core.matrix.LongPair;
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 import org.openlca.core.matrix.dbtables.ExchangeTable;
 import org.openlca.core.matrix.dbtables.PicoExchange;
 import org.openlca.core.matrix.dbtables.ProviderTable;
@@ -16,26 +16,26 @@ import org.openlca.core.model.FlowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TechIndexBuilder implements IProductIndexBuilder {
+public class TechGraphBuilder implements IProductIndexBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 	private ExchangeTable exchanges;
 	private ProviderTable providers;
 
-	public TechIndexBuilder(ExchangeTable exchanges, ProviderTable providers) {
+	public TechGraphBuilder(ExchangeTable exchanges, ProviderTable providers) {
 		this.exchanges = exchanges;
 		this.providers = providers;
 	}
 
 	@Override
-	public TechIndex build(LongPair refProduct) {
+	public TechGraph build(LongPair refProduct) {
 		return build(refProduct, 1.0);
 	}
 
 	@Override
-	public TechIndex build(LongPair refProduct, double demand) {
+	public TechGraph build(LongPair refProduct, double demand) {
 		log.trace("build product index for {}", refProduct);
-		TechIndex index = new TechIndex(refProduct);
+		TechGraph index = new TechGraph(refProduct);
 		index.setDemand(demand);
 		List<LongPair> block = new ArrayList<>();
 		block.add(refProduct);

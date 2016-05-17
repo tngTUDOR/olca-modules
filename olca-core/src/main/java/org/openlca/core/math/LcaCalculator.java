@@ -4,7 +4,7 @@ import org.openlca.core.matrix.CostVector;
 import org.openlca.core.matrix.AssessmentMatrix;
 import org.openlca.core.matrix.InventoryMatrix;
 import org.openlca.core.matrix.LongPair;
-import org.openlca.core.matrix.TechIndex;
+import org.openlca.core.matrix.TechGraph;
 import org.openlca.core.results.ContributionResult;
 import org.openlca.core.results.FullResult;
 import org.openlca.core.results.LinkContributions;
@@ -38,7 +38,7 @@ public class LcaCalculator {
 		result.productIndex = inventory.productIndex;
 
 		IMatrix techMatrix = inventory.technologyMatrix;
-		TechIndex productIndex = inventory.productIndex;
+		TechGraph productIndex = inventory.productIndex;
 		int idx = productIndex.getIndex(productIndex.getRefFlow());
 		double[] s = solver.solve(techMatrix, idx, productIndex.getDemand());
 		result.scalingFactors = s;
@@ -66,7 +66,7 @@ public class LcaCalculator {
 		result.productIndex = inventory.productIndex;
 
 		IMatrix techMatrix = inventory.technologyMatrix;
-		TechIndex productIndex = inventory.productIndex;
+		TechGraph productIndex = inventory.productIndex;
 		int idx = productIndex.getIndex(productIndex.getRefFlow());
 		double[] s = solver.solve(techMatrix, idx, productIndex.getDemand());
 		result.scalingFactors = s;
@@ -99,7 +99,7 @@ public class LcaCalculator {
 		result.flowIndex = inventory.flowIndex;
 		result.productIndex = inventory.productIndex;
 
-		TechIndex productIdx = inventory.productIndex;
+		TechGraph productIdx = inventory.productIndex;
 		IMatrix techMatrix = inventory.technologyMatrix;
 		IMatrix enviMatrix = inventory.interventionMatrix;
 		IMatrix inverse = solver.invert(techMatrix);
@@ -157,7 +157,7 @@ public class LcaCalculator {
 	 * where d is the demand vector and.
 	 * 
 	 */
-	public double[] getScalingVector(IMatrix inverse, TechIndex productIdx) {
+	public double[] getScalingVector(IMatrix inverse, TechGraph productIdx) {
 		LongPair refProduct = productIdx.getRefFlow();
 		int idx = productIdx.getIndex(refProduct);
 		double[] s = inverse.getColumn(idx);
@@ -189,7 +189,7 @@ public class LcaCalculator {
 	 * Calculate the real demand vector for the analysis.
 	 */
 	public double[] getRealDemands(double[] totalRequirements,
-			TechIndex productIdx) {
+			TechGraph productIdx) {
 		double refDemand = productIdx.getDemand();
 		int i = productIdx.getIndex(productIdx.getRefFlow());
 		double[] rd = new double[totalRequirements.length];
