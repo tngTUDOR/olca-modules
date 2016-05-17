@@ -14,11 +14,11 @@ public class AllocationIndexTest {
 
 	@Test
 	public void testDefaultFactor() {
-		TechGraph index = new TechGraph(
+		TechGraph graph = new TechGraph(
 				LongPair.of(999999999, 999999999));
-		AllocationIndex allocationIndex = AllocationIndex.create(index,
+		AllocationIndex allocationIndex = AllocationIndex.create(graph,
 				AllocationMethod.USE_DEFAULT, database);
-		double f = allocationIndex.getFactor(index.getRefFlow(),
+		double f = allocationIndex.getFactor(graph.index.getFlowAt(0),
 				new PicoExchange());
 		assertEquals(1.0, f, 1e-16);
 	}

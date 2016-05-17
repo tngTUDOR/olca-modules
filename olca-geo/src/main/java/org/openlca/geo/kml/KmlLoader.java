@@ -33,15 +33,15 @@ public class KmlLoader implements IKmlLoader {
 	}
 
 	@Override
-	public final List<LocationKml> load(TechGraph index) {
-		if (index == null)
+	public final List<LocationKml> load(TechGraph graph) {
+		if (graph == null)
 			return Collections.emptyList();
 		try {
-			loadProcessLocations(index);
+			loadProcessLocations(graph);
 			queryLocationTable();
 			List<LocationKml> results = new ArrayList<>();
-			for (int i = 0; i < index.size(); i++) {
-				LongPair product = index.getFlowAt(i);
+			for (int i = 0; i < graph.index.size(); i++) {
+				LongPair product = graph.index.getFlowAt(i);
 				LocationKml result = getFeatureResult(product.getFirst());
 				if (result == null)
 					continue;
@@ -56,8 +56,8 @@ public class KmlLoader implements IKmlLoader {
 		}
 	}
 
-	private void loadProcessLocations(TechGraph idx) throws Exception {
-		Set<Long> processIds = idx.getProcessIds();
+	private void loadProcessLocations(TechGraph graph) throws Exception {
+		Set<Long> processIds = graph.index.getProcessIds();
 		String query = "select id, f_location from tbl_processes";
 		NativeSql.on(database).query(query, rs -> {
 			long id = rs.getLong("id");

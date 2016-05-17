@@ -19,12 +19,10 @@ public class ContributionTreeTest {
 	public void testSimpleTree() {
 
 		InventoryMatrix matrix = new InventoryMatrix();
-		TechGraph productIndex = new TechGraph(LongPair.of(1, 1));
-		productIndex.put(LongPair.of(2, 2));
-		productIndex.put(LongPair.of(3, 3));
-		productIndex.putLink(LongPair.of(1, 2), LongPair.of(2, 2));
-		productIndex.putLink(LongPair.of(1, 3), LongPair.of(3, 3));
-		matrix.productIndex = productIndex;
+		TechGraph graph = new TechGraph(LongPair.of(1, 1));
+		graph.putLink(LongPair.of(1, 2), LongPair.of(2, 2));
+		graph.putLink(LongPair.of(1, 3), LongPair.of(3, 3));
+		matrix.productIndex = graph;
 
 		FlowIndex flowIndex = new FlowIndex();
 		flowIndex.putOutputFlow(4);

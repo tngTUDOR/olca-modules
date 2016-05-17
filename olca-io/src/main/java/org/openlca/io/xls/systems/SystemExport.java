@@ -100,7 +100,7 @@ public class SystemExport {
 
 		String name = conf.getSystem().getName();
 		int processes = conf.getSystem().getProcesses().size();
-		int products = inventory.techIndex.size();
+		int products = inventory.techGraph.index.size();
 		int flows = inventory.flowIndex.size();
 		String dimensions = flows + "x" + products;
 
@@ -147,7 +147,7 @@ public class SystemExport {
 
 		String name = conf.getSystem().getName();
 		int processes = conf.getSystem().getProcesses().size();
-		int products = inventory.techIndex.size();
+		int products = inventory.techGraph.index.size();
 		String dimensions = products + "x" + products;
 
 		currentRow = line(sheet, currentRow, "Product system:", name);
@@ -265,7 +265,7 @@ public class SystemExport {
 	}
 
 	private void createElementarySheet(Workbook workbook) {
-		ExcelHeader columnHeader = createProductHeader(inventory.techIndex);
+		ExcelHeader columnHeader = createProductHeader(inventory.techGraph);
 		ExcelHeader rowHeader = createFlowHeader(inventory.flowIndex);
 		MatrixExcelExport export = new MatrixExcelExport();
 		export.setColumnHeader(columnHeader);
@@ -276,8 +276,8 @@ public class SystemExport {
 	}
 
 	private void createProductSheet(Workbook workbook) {
-		ExcelHeader columnHeader = createProductHeader(inventory.techIndex);
-		ExcelHeader rowHeader = createProductHeader(inventory.techIndex);
+		ExcelHeader columnHeader = createProductHeader(inventory.techGraph);
+		ExcelHeader rowHeader = createProductHeader(inventory.techGraph);
 		MatrixExcelExport export = new MatrixExcelExport();
 		export.setColumnHeader(columnHeader);
 		export.setRowHeader(rowHeader);
@@ -323,7 +323,7 @@ public class SystemExport {
 		int counter = 0;
 		for (ProductInfo product : sortedProducts) {
 			header.putIndexMapping(counter,
-					productIndex.getIndex(product.getLongPair()));
+					productIndex.index.getIndex(product.getLongPair()));
 			counter++;
 		}
 		return sortedProducts;

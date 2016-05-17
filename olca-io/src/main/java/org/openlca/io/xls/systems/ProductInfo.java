@@ -31,19 +31,18 @@ class ProductInfo implements Comparable<ProductInfo> {
 	private String productId;
 	private String productUnit;
 
-	public static List<ProductInfo> getAll(SystemExportConfig conf,
-			TechGraph index) {
+	public static List<ProductInfo> getAll(SystemExportConfig conf, TechGraph graph) {
 		EntityCache cache = conf.getEntityCache();
-		List<ProductInfo> infos = new ArrayList<>(index.size() + 2);
-		for (int i = 0; i < index.size(); i++) {
-			LongPair pair = index.getFlowAt(i);
+		List<ProductInfo> infos = new ArrayList<>(graph.index.size() + 2);
+		for (int i = 0; i < graph.index.size(); i++) {
+			LongPair pair = graph.index.getFlowAt(i);
 			ProcessDescriptor process = cache.get(ProcessDescriptor.class,
 					pair.getFirst());
 			FlowDescriptor product = cache.get(FlowDescriptor.class,
 					pair.getSecond());
 			ProductInfo info = new ProductInfo();
 			info.longPair = pair;
-			info.ref = pair.equals(index.getRefFlow());
+			info.ref = pair.equals(graph.index.getFlowAt(0));
 			info.process = process.getName();
 			info.processId = process.getRefId();
 			info.product = product.getName();

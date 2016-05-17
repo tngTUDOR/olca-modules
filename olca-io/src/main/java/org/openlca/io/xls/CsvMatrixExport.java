@@ -67,10 +67,10 @@ public class CsvMatrixExport implements Runnable {
 	private void writeTechMatrix(Inventory inventory, BufferedWriter buffer)
 			throws Exception {
 		ExchangeMatrix techMatrix = inventory.technologyMatrix;
-		TechGraph productIndex = inventory.techIndex;
-		int size = productIndex.size();
+		TechGraph graph = inventory.techGraph;
+		int size = graph.index.size();
 		for (int row = 0; row < size; row++) {
-			LongPair product = productIndex.getFlowAt(row);
+			LongPair product = graph.index.getFlowAt(row);
 			FlowDescriptor flow = getFlow(product.getSecond());
 			writeName(flow, buffer);
 			sep(buffer);
@@ -96,11 +96,11 @@ public class CsvMatrixExport implements Runnable {
 
 	private void writeEnviMatrix(Inventory inventory, BufferedWriter buffer)
 			throws Exception {
-		TechGraph productIndex = inventory.techIndex;
+		TechGraph graph = inventory.techGraph;
 		FlowIndex flowIndex = inventory.flowIndex;
 		int rows = flowIndex.size();
-		int columns = productIndex.size();
-		writeEnviMatrixHeader(buffer, productIndex);
+		int columns = graph.index.size();
+		writeEnviMatrixHeader(buffer, graph);
 		ExchangeMatrix matrix = inventory.interventionMatrix;
 		for (int row = 0; row < rows; row++) {
 			FlowDescriptor flow = getFlow(flowIndex.getFlowAt(row));
@@ -119,12 +119,12 @@ public class CsvMatrixExport implements Runnable {
 	}
 
 	private void writeEnviMatrixHeader(BufferedWriter buffer,
-			TechGraph productIndex) throws Exception, IOException {
+			TechGraph graph) throws Exception, IOException {
 		sep(buffer);
 		sep(buffer);
-		int columns = productIndex.size();
+		int columns = graph.index.size();
 		for (int col = 0; col < columns; col++) {
-			LongPair product = productIndex.getFlowAt(col);
+			LongPair product = graph.index.getFlowAt(col);
 			FlowDescriptor flow = getFlow(product.getSecond());
 			writeName(flow, buffer);
 			sep(buffer, col, columns);
@@ -133,7 +133,7 @@ public class CsvMatrixExport implements Runnable {
 		sep(buffer);
 		sep(buffer);
 		for (int col = 0; col < columns; col++) {
-			LongPair product = productIndex.getFlowAt(col);
+			LongPair product = graph.index.getFlowAt(col);
 			FlowDescriptor flow = getFlow(product.getSecond());
 			writeCategory(flow, buffer);
 			sep(buffer, col, columns);

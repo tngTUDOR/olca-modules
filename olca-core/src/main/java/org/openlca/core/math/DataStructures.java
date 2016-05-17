@@ -33,18 +33,18 @@ public class DataStructures {
 		Flow refFlow = refExchange.getFlow();
 		LongPair refProduct = new LongPair(refProcess.getId(), refFlow.getId());
 		double demand = ReferenceAmount.get(system);
-		TechGraph index = new TechGraph(refProduct);
-		index.setDemand(demand);
+		TechGraph graph = new TechGraph(refProduct);
+		graph.index.demand = demand;
 		for (ProcessLink link : system.getProcessLinks()) {
 			long flow = link.getFlowId();
 			long provider = link.getProviderId();
 			long recipient = link.getRecipientId();
 			LongPair processProduct = new LongPair(provider, flow);
-			index.put(processProduct);
+			graph.index.put(processProduct);
 			LongPair input = new LongPair(recipient, flow);
-			index.putLink(input, processProduct);
+			graph.putLink(input, processProduct);
 		}
-		return index;
+		return graph;
 	}
 
 	public static Inventory createInventory(ProductSystem system, IDatabase db) {
@@ -64,9 +64,9 @@ public class DataStructures {
 		AllocationMethod method = setup.allocationMethod;
 		if (method == null)
 			method = AllocationMethod.NONE;
-		TechGraph index = createProductIndex(system);
-		index.setDemand(ReferenceAmount.get(setup));
-		return Inventory.build(index, db, method);
+		TechGraph graph = createProductIndex(system);
+		graph.index.demand = ReferenceAmount.get(setup);
+		return Inventory.build(graph, db, method);
 	}
 
 	public static ParameterTable createParameterTable(IDatabase db,
@@ -74,8 +74,8 @@ public class DataStructures {
 		Set<Long> contexts = new HashSet<>();
 		if (setup.impactMethod != null)
 			contexts.add(setup.impactMethod.getId());
-		if (inventory.techIndex != null)
-			contexts.addAll(inventory.techIndex.getProcessIds());
+		if (inventory.techGraph != null)
+			contexts.addAll(inventory.techGraph.index.getProcessIds());
 		ParameterTable table = ParameterTable.build(db, contexts);
 		table.apply(setup.parameterRedefs);
 		return table;

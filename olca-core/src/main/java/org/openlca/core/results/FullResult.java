@@ -35,7 +35,7 @@ public class FullResult extends ContributionResult {
 	 */
 	public double getUpstreamFlowResult(LongPair processProduct, long flowId) {
 		int row = flowIndex.getIndex(flowId);
-		int col = productIndex.getIndex(processProduct);
+		int col = techGraph.index.getIndex(processProduct);
 		return getValue(upstreamFlowResults, row, col);
 	}
 
@@ -57,7 +57,7 @@ public class FullResult extends ContributionResult {
 		if (!hasImpactResults())
 			return 0;
 		int row = impactIndex.getIndex(impactId);
-		int col = productIndex.getIndex(processProduct);
+		int col = techGraph.index.getIndex(processProduct);
 		return getValue(upstreamImpactResults, row, col);
 	}
 
@@ -78,7 +78,7 @@ public class FullResult extends ContributionResult {
 	public double getUpstreamCostResult(LongPair processProduct) {
 		if (!hasCostResults)
 			return 0;
-		int col = productIndex.getIndex(processProduct);
+		int col = techGraph.index.getIndex(processProduct);
 		return getValue(upstreamCostResults, 0, col);
 	}
 

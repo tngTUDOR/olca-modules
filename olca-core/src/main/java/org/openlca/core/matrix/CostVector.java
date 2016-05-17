@@ -13,16 +13,16 @@ import org.openlca.core.matrix.dbtables.CurrencyTable;
  */
 public class CostVector {
 
-	public final TechGraph productIndex;
+	public final TechGraph techGraph;
 	public final double[] values;
 
 	CostVector(TechGraph products, double[] values) {
-		this.productIndex = products;
+		this.techGraph = products;
 		this.values = values;
 	}
 
 	public boolean isEmpty() {
-		return productIndex == null || productIndex.size() == 0 || values == null;
+		return techGraph == null || techGraph.index.size() == 0 || values == null;
 	}
 
 	public IMatrix asMatrix(IMatrixFactory<?> factory) {
@@ -50,12 +50,12 @@ public class CostVector {
 		}
 
 		private CostVector build() {
-			if (inventory == null || inventory.techIndex == null)
+			if (inventory == null || inventory.techGraph == null)
 				return new CostVector(null, null);
-			values = new double[inventory.techIndex.size()];
+			values = new double[inventory.techGraph.index.size()];
 			scan(inventory.technologyMatrix);
 			scan(inventory.interventionMatrix);
-			return new CostVector(inventory.techIndex, values);
+			return new CostVector(inventory.techGraph, values);
 		}
 
 		private void scan(ExchangeMatrix matrix) {

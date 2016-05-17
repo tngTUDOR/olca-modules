@@ -11,7 +11,7 @@ public abstract class BaseResult {
 	 * column and row indices of the matrices and vectors of the mathematical
 	 * model.
 	 */
-	public TechGraph productIndex;
+	public TechGraph techGraph;
 
 	/**
 	 * The flow index which maps the flow-IDs from the interventions to column

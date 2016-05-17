@@ -54,7 +54,7 @@ public class ContributionResult extends SimpleResult {
 	 */
 	public double getSingleFlowResult(LongPair processProduct, long flowId) {
 		int row = flowIndex.getIndex(flowId);
-		int col = productIndex.getIndex(processProduct);
+		int col = techGraph.index.getIndex(processProduct);
 		return getValue(singleFlowResults, row, col);
 	}
 
@@ -77,7 +77,7 @@ public class ContributionResult extends SimpleResult {
 		if (!hasImpactResults())
 			return 0;
 		int row = impactIndex.getIndex(impactId);
-		int col = productIndex.getIndex(processProduct);
+		int col = techGraph.index.getIndex(processProduct);
 		return getValue(singleImpactResults, row, col);
 	}
 
@@ -95,7 +95,7 @@ public class ContributionResult extends SimpleResult {
 	public double getSingleCostResult(LongPair processProduct) {
 		if (!hasCostResults)
 			return 0;
-		int col = productIndex.getIndex(processProduct);
+		int col = techGraph.index.getIndex(processProduct);
 		if (col >= singleCostResults.length)
 			return 0;
 		return singleCostResults[col];
@@ -105,7 +105,7 @@ public class ContributionResult extends SimpleResult {
 		if (!hasCostResults)
 			return 0;
 		double sum = 0;
-		for (LongPair product : productIndex.getIndexFlows(processId)) {
+		for (LongPair product : techGraph.index.getProcessFlows(processId)) {
 			sum += getSingleCostResult(product);
 		}
 		return sum;
@@ -127,8 +127,8 @@ public class ContributionResult extends SimpleResult {
 		if (matrix == null)
 			return 0;
 		double colSum = 0;
-		for (LongPair product : productIndex.getIndexFlows(processId)) {
-			int col = productIndex.getIndex(product);
+		for (LongPair product : techGraph.index.getProcessFlows(processId)) {
+			int col = techGraph.index.getIndex(product);
 			colSum += getValue(matrix, row, col);
 		}
 		return colSum;

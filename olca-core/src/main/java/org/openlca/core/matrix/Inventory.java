@@ -11,7 +11,7 @@ import org.openlca.expressions.FormulaInterpreter;
  */
 public class Inventory {
 
-	public TechGraph techIndex;
+	public TechGraph techGraph;
 	public FlowIndex flowIndex;
 	public ExchangeMatrix technologyMatrix;
 	public ExchangeMatrix interventionMatrix;
@@ -25,7 +25,7 @@ public class Inventory {
 	}
 
 	public boolean isEmpty() {
-		return techIndex == null || techIndex.size() == 0
+		return techGraph == null || techGraph.index.size() == 0
 				|| flowIndex == null || flowIndex.isEmpty()
 				|| technologyMatrix == null || technologyMatrix.isEmpty()
 				|| interventionMatrix == null || interventionMatrix.isEmpty();
@@ -40,7 +40,7 @@ public class Inventory {
 		evalFormulas(interpreter);
 		InventoryMatrix matrix = new InventoryMatrix();
 		matrix.flowIndex = flowIndex;
-		matrix.productIndex = techIndex;
+		matrix.productIndex = techGraph;
 		IMatrix enviMatrix = interventionMatrix.createRealMatrix(factory);
 		matrix.interventionMatrix = enviMatrix;
 		IMatrix techMatrix = technologyMatrix.createRealMatrix(factory);

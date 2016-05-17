@@ -20,7 +20,7 @@ public class InventoryMatrix {
 	public boolean isEmpty() {
 		return flowIndex == null || interventionMatrix == null
 				|| flowIndex.size() == 0 || productIndex == null
-				|| productIndex.size() == 0 || technologyMatrix == null;
+				|| productIndex.index.size() == 0 || technologyMatrix == null;
 	}
 
 }

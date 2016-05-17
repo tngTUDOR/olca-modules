@@ -71,12 +71,12 @@ public class ProductSystemBuilder {
 	private void run(ProductSystem system, LongPair processProduct) {
 		log.trace("build product index");
 		IProductIndexBuilder builder = getProductIndexBuilder();
-		TechGraph index = builder.build(processProduct);
+		TechGraph graph = builder.build(processProduct);
 		log.trace(
 				"built a product index with {} process products and {} links",
-				index.size(), index.getLinkedFlows().size());
+				graph.index.size(), graph.getLinkedFlows().size());
 		log.trace("create new process links");
-		addLinksAndProcesses(system, index);
+		addLinksAndProcesses(system, graph);
 	}
 
 	private IProductIndexBuilder getProductIndexBuilder() {

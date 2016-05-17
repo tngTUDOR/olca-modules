@@ -37,11 +37,11 @@ public class BaseResultProvider<T extends BaseResult> implements IResultProvider
 
 	@Override
 	public Set<ProcessDescriptor> getProcessDescriptors() {
-		TechGraph index = result.productIndex;
-		if (index == null)
+		TechGraph graph = result.techGraph;
+		if (graph == null)
 			return Collections.emptySet();
 		Map<Long, ProcessDescriptor> values = cache.getAll(
-				ProcessDescriptor.class, index.getProcessIds());
+				ProcessDescriptor.class, graph.index.getProcessIds());
 		HashSet<ProcessDescriptor> descriptors = new HashSet<>();
 		descriptors.addAll(values.values());
 		return descriptors;

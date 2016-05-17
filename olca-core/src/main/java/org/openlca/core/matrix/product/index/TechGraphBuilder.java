@@ -35,8 +35,8 @@ public class TechGraphBuilder implements IProductIndexBuilder {
 	@Override
 	public TechGraph build(LongPair refProduct, double demand) {
 		log.trace("build product index for {}", refProduct);
-		TechGraph index = new TechGraph(refProduct);
-		index.setDemand(demand);
+		TechGraph graph = new TechGraph(refProduct);
+		graph.index.demand = demand;
 		List<LongPair> block = new ArrayList<>();
 		block.add(refProduct);
 		HashSet<LongPair> handled = new HashSet<>();
@@ -56,7 +56,7 @@ public class TechGraphBuilder implements IProductIndexBuilder {
 						continue;
 					LongPair recipientInput = new LongPair(
 							recipient.getFirst(), productInput.exchangeID);
-					index.putLink(recipientInput, provider);
+					graph.putLink(recipientInput, provider);
 					if (!handled.contains(provider)
 							&& !nextBlock.contains(provider))
 						nextBlock.add(provider);
@@ -64,7 +64,7 @@ public class TechGraphBuilder implements IProductIndexBuilder {
 			}
 			block = nextBlock;
 		}
-		return index;
+		return graph;
 	}
 
 	private List<PicoExchange> getProductInputs(

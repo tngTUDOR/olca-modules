@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 class InventoryBuilder {
 
-	private final TechGraph techIndex;
+	private final TechGraph techGraph;
 	private final IDatabase db;
 
 	private AllocationMethod allocation;
@@ -25,7 +25,7 @@ class InventoryBuilder {
 	private ExchangeMatrix interventionMatrix;
 
 	InventoryBuilder(TechGraph techIndex, IDatabase db) {
-		this.techIndex = techIndex;
+		this.techGraph = techIndex;
 		this.db = db;
 	}
 
@@ -41,14 +41,13 @@ class InventoryBuilder {
 
 	Inventory build() {
 		if (allocation != null && allocation != AllocationMethod.NONE)
-			allocationIndex = AllocationIndex.create(techIndex, allocation, db);
+			allocationIndex = AllocationIndex.create(techGraph, allocation, db);
 		if (exchanges == null)
 			exchanges = ExchangeTable.create(db);
-		flowIndex = FlowIndex.build(exchanges, techIndex, allocation);
-		technologyMatrix = new ExchangeMatrix(techIndex.size(),
-				techIndex.size());
-		interventionMatrix = new ExchangeMatrix(flowIndex.size(),
-				techIndex.size());
+		flowIndex = FlowIndex.build(exchanges, techGraph, allocation);
+		int n = techGraph.index.size();
+		technologyMatrix = new ExchangeMatrix(n, n);
+		interventionMatrix = new ExchangeMatrix(flowIndex.size(), n);
 		return createInventory();
 	}
 
@@ -57,7 +56,7 @@ class InventoryBuilder {
 		inventory.allocationMethod = allocation;
 		inventory.flowIndex = flowIndex;
 		inventory.interventionMatrix = interventionMatrix;
-		inventory.techIndex = techIndex;
+		inventory.techGraph = techGraph;
 		inventory.technologyMatrix = technologyMatrix;
 		fillMatrices();
 		return inventory;
@@ -66,11 +65,11 @@ class InventoryBuilder {
 	private void fillMatrices() {
 		try {
 			Map<Long, List<PicoExchange>> map = exchanges.get(
-					techIndex.getProcessIds());
-			for (Long processID : techIndex.getProcessIds()) {
+					techGraph.index.getProcessIds());
+			for (Long processID : techGraph.index.getProcessIds()) {
 				List<PicoExchange> exchanges = map.get(processID);
-				List<LongPair> processProducts = techIndex
-						.getIndexFlows(processID);
+				List<LongPair> processProducts = techGraph.index
+						.getProcessFlows(processID);
 				for (LongPair processProduct : processProducts) {
 					for (PicoExchange exchange : exchanges) {
 						putExchangeValue(processProduct, exchange);
@@ -86,7 +85,7 @@ class InventoryBuilder {
 	private void putExchangeValue(LongPair processProduct, PicoExchange e) {
 		if (!e.isInput && processProduct.equals(e.processID, e.flowID)) {
 			// the reference product
-			int idx = techIndex.getIndex(processProduct);
+			int idx = techGraph.index.getIndex(processProduct);
 			add(idx, processProduct, technologyMatrix, e);
 
 		} else if (e.flowType == FlowType.ELEMENTARY_FLOW) {
@@ -96,7 +95,7 @@ class InventoryBuilder {
 		} else if (e.isInput) {
 
 			LongPair inputProduct = new LongPair(e.processID, e.flowID);
-			if (techIndex.isLinked(inputProduct)) {
+			if (techGraph.isLinked(inputProduct)) {
 				// linked product inputs
 				addProcessLink(processProduct, e, inputProduct);
 			} else {
@@ -113,8 +112,8 @@ class InventoryBuilder {
 
 	private void addProcessLink(LongPair processProduct, PicoExchange e,
 			LongPair inputProduct) {
-		LongPair linkedOutput = techIndex.getLinkedTarget(inputProduct);
-		int row = techIndex.getIndex(linkedOutput);
+		LongPair linkedOutput = techGraph.getLinkedTarget(inputProduct);
+		int row = techGraph.index.getIndex(linkedOutput);
 		add(row, processProduct, technologyMatrix, e);
 	}
 
@@ -125,7 +124,7 @@ class InventoryBuilder {
 
 	private void add(int row, LongPair processProduct, ExchangeMatrix matrix,
 			PicoExchange exchange) {
-		int col = techIndex.getIndex(processProduct);
+		int col = techGraph.index.getIndex(processProduct);
 		if (row < 0 || col < 0)
 			return;
 		ExchangeCell existingCell = matrix.getEntry(row, col);

@@ -34,11 +34,11 @@ class AllocationIndex {
 		return new AllocationIndex(productIndex, method, db);
 	}
 
-	private AllocationIndex(TechGraph productIndex, AllocationMethod method,
+	private AllocationIndex(TechGraph graph, AllocationMethod method,
 			IDatabase db) {
 		this.method = method;
-		AllocationTable table = AllocationTable.create(db);
-		for (Long processID : productIndex.getProcessIds()) {
+		table = AllocationTable.create(db);
+		for (Long processID : graph.index.getProcessIds()) {
 			for (PicoAllocationFactor f : table.get(processID)) {
 				index(f);
 			}

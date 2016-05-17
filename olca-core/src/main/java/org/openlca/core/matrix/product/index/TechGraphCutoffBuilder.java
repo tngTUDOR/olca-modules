@@ -40,14 +40,14 @@ public class TechGraphCutoffBuilder implements IProductIndexBuilder {
 	public TechGraph build(LongPair refProduct, double demand) {
 		log.trace("build product index for {} with cutoff=", refProduct,
 				cutoff);
-		TechGraph index = new TechGraph(refProduct);
-		index.setDemand(demand);
+		TechGraph graph = new TechGraph(refProduct);
+		graph.index.demand = demand;
 		Graph g = new Graph(refProduct, demand);
 		while (!g.next.isEmpty())
 			g.handleNext();
-		fillIndex(g, index);
-		log.trace("created the index with {} products", index.size());
-		return index;
+		fillIndex(g, graph);
+		log.trace("created the index with {} products", graph.index.size());
+		return graph;
 	}
 
 	private void fillIndex(Graph g, TechGraph index) {

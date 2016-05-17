@@ -43,7 +43,7 @@ public class RegionalizedCalculator {
 		try {
 			Inventory inventory = DataStructures.createInventory(setup, db);
 			if (regioSetup == null)
-				regioSetup = RegionalizationSetup.create(db, setup.impactMethod, inventory.techIndex);
+				regioSetup = RegionalizationSetup.create(db, setup.impactMethod, inventory.techGraph);
 			if (!regioSetup.canCalculate)
 				return null;
 
@@ -57,13 +57,13 @@ public class RegionalizedCalculator {
 
 			FullResult r = new FullResult();
 			r.flowIndex = inventory.flowIndex;
-			r.productIndex = inventory.techIndex;
+			r.techGraph = inventory.techGraph;
 			r.impactIndex = impactTable.categoryIndex;
 
 			// direct LCI results
 			LcaCalculator baseCalc = new LcaCalculator(solver, m);
 			IMatrix inverse = solver.invert(m.technologyMatrix);
-			r.scalingFactors = baseCalc.getScalingVector(inverse, r.productIndex);
+			r.scalingFactors = baseCalc.getScalingVector(inverse, r.techGraph);
 			r.singleFlowResults = m.interventionMatrix.copy();
 			solver.scaleColumns(r.singleFlowResults, r.scalingFactors);
 			r.totalRequirements = baseCalc.getTotalRequirements(
@@ -79,7 +79,7 @@ public class RegionalizedCalculator {
 			eachKml(regioSetup, impactTable, interpreter, (kml, kmlFactors) -> {
 				IMatrix assessedKml = solver.multiply(kmlFactors, m.interventionMatrix);
 				for (LongPair product : kml.processProducts) {
-					int col = r.productIndex.getIndex(product);
+					int col = r.techGraph.index.getIndex(product);
 					for (int row = 0; row < assessedEnvi.getRowDimension(); row++) {
 						assessedEnvi.setEntry(row, col, assessedKml.getEntry(row, col));
 					}
@@ -92,14 +92,13 @@ public class RegionalizedCalculator {
 
 			// upstream & total results
 			double[] demands = baseCalc.getRealDemands(r.totalRequirements,
-					r.productIndex);
+					r.techGraph);
 			r.upstreamFlowResults = solver.multiply(m.interventionMatrix, inverse);
 			solver.scaleColumns(r.upstreamFlowResults, demands);
 			r.upstreamImpactResults = solver.multiply(assessedEnvi, inverse);
 			solver.scaleColumns(r.upstreamImpactResults, demands);
-			int refIdx = r.productIndex.getIndex(r.productIndex.getRefFlow());
-			r.totalFlowResults = r.upstreamFlowResults.getColumn(refIdx);
-			r.totalImpactResults = r.upstreamImpactResults.getColumn(refIdx);
+			r.totalFlowResults = r.upstreamFlowResults.getColumn(0);
+			r.totalImpactResults = r.upstreamImpactResults.getColumn(0);
 
 			// add LCC results
 			if (setup.withCosts) {
@@ -118,7 +117,7 @@ public class RegionalizedCalculator {
 				IMatrix costMatrix = costVector.asMatrix(solver.getMatrixFactory());
 				IMatrix upstreamCosts = solver.multiply(costMatrix, inverse);
 				solver.scaleColumns(upstreamCosts, demands);
-				r.totalCostResult = upstreamCosts.getEntry(0, refIdx);
+				r.totalCostResult = upstreamCosts.getEntry(0, 0);
 				r.upstreamCostResults = upstreamCosts;
 			}
 

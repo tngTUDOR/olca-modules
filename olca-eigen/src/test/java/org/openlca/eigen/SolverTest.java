@@ -58,10 +58,10 @@ public class SolverTest {
 
 		InventoryMatrix matrix = new InventoryMatrix();
 
-		TechGraph productIndex = new TechGraph(LongPair.of(1, 1));
-		productIndex.put(LongPair.of(1, 1));
-		productIndex.setDemand(1d);
-		matrix.productIndex = productIndex;
+		TechGraph graph = new TechGraph(LongPair.of(1, 1));
+		graph.index.put(LongPair.of(1, 1));
+		graph.index.demand = 1d;
+		matrix.productIndex = graph;
 
 		FlowIndex flowIndex = new FlowIndex();
 		flowIndex.putInputFlow(1);

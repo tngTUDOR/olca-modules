@@ -60,21 +60,21 @@ public class LinkContributions {
 		return share == null ? 0 : share;
 	}
 
-	private void calculateShares(IMatrix matrix, TechGraph index,
+	private void calculateShares(IMatrix matrix, TechGraph graph,
 			double[] scalingFactors) {
-		for (int i = 0; i < index.size(); i++) {
-			LongPair outProduct = index.getFlowAt(i);
+		for (int i = 0; i < graph.index.size(); i++) {
+			LongPair outProduct = graph.index.getFlowAt(i);
 			double outVal = scalingFactors[i] * matrix.getEntry(i, i);
 			if (outVal == 0)
 				continue;
-			for (int k = 0; k < index.size(); k++) {
+			for (int k = 0; k < graph.index.size(); k++) {
 				if (k == i)
 					continue;
 				double rawInVal = matrix.getEntry(i, k);
 				if (rawInVal == 0)
 					continue;
 				double contr = -(scalingFactors[k] * rawInVal) / outVal;
-				LongPair inProduct = index.getFlowAt(k);
+				LongPair inProduct = graph.index.getFlowAt(k);
 				putShare(outProduct, inProduct, contr);
 			}
 		}
