@@ -17,7 +17,7 @@ import org.openlca.yaml.Document;
 public class TechGraphTest {
 
 	private IDatabase db = Tests.getDb();
-	private TechGraph graph;
+	private TechGraph g;
 
 	@Before
 	public void setUp() {
@@ -27,10 +27,8 @@ public class TechGraphTest {
 		Document.read(is).sync(db);
 		TechGraphBuilder builder = new TechGraphBuilder(db,
 				ProcessType.UNIT_PROCESS);
-		Process refProc = Tests.getProcess("Ref. process");
-		Exchange refFlow = Tests.getExchange(refProc, "Product 2");
-		LongPair ref = LongPair.of(refProc.getId(), refFlow.getId());
-		graph = builder.build(ref);
+		LongPair ref = f("Ref. process", "Product 2");
+		g = builder.build(ref);
 	}
 
 	@After
@@ -40,17 +38,32 @@ public class TechGraphTest {
 
 	@Test
 	public void testIndex() {
-		Assert.assertEquals(3, graph.index.size());
-		indexContains("Ref. process", "Product 2");
-		indexContains("Supplier", "Product 1");
-		indexContains("Waste treatment", "Waste");
+		Assert.assertEquals(3, g.index.size());
+		g.index.contains(f("Ref. process", "Product 2"));
+		g.index.contains(f("Supplier", "Product 1"));
+		g.index.contains(f("Waste treatment", "Waste"));
+		Assert.assertEquals(g.index.getFlowAt(0), f("Ref. process", "Product 2"));
 	}
 
-	private void indexContains(String processName, String flowName) {
+	@Test
+	public void testLinkFlows() {
+		Assert.assertEquals(2, g.getLinkFlows().size());
+		Assert.assertTrue(g.isLinked(f("Ref. process", "Product 1")));
+		Assert.assertTrue(g.isLinked(f("Ref. process", "Waste")));
+	}
+
+	@Test
+	public void testLinks() {
+		Assert.assertNull(g.getIndexFlow(f("Ref. process", "Product 2")));
+		Assert.assertEquals(f("Supplier", "Product 1"),
+				g.getIndexFlow(f("Ref. process", "Product 1")));
+		Assert.assertEquals(f("Waste treatment", "Waste"),
+				g.getIndexFlow(f("Ref. process", "Waste")));
+	}
+
+	private LongPair f(String processName, String flowName) {
 		Process p = Tests.getProcess(processName);
 		Exchange e = Tests.getExchange(p, flowName);
-		LongPair flow = LongPair.of(p.getId(), e.getId());
-		Assert.assertTrue(graph.index.contains(flow));
+		return LongPair.of(p.getId(), e.getId());
 	}
-
 }

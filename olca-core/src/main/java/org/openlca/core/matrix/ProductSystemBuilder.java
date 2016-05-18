@@ -74,7 +74,7 @@ public class ProductSystemBuilder {
 		TechGraph graph = builder.build(processProduct);
 		log.trace(
 				"built a product index with {} process products and {} links",
-				graph.index.size(), graph.getLinkedFlows().size());
+				graph.index.size(), graph.getLinkFlows().size());
 		log.trace("create new process links");
 		addLinksAndProcesses(system, graph);
 	}
@@ -94,8 +94,8 @@ public class ProductSystemBuilder {
 				Constants.DEFAULT_LOAD_FACTOR, -1);
 		addSystemLinksAndProcesses(system, links, processes);
 		log.trace("add new processes and links");
-		for (LongPair input : index.getLinkedFlows()) {
-			LongPair output = index.getLinkedTarget(input);
+		for (LongPair input : index.getLinkFlows()) {
+			LongPair output = index.getIndexFlow(input);
 			if (output == null)
 				continue;
 			long provider = output.getFirst();

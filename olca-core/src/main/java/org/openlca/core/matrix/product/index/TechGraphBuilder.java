@@ -55,13 +55,12 @@ public class TechGraphBuilder implements IProductIndexBuilder {
 				handled.add(indexFlow);
 				List<PicoExchange> flows = allFlows.get(indexFlow.getFirst());
 				List<PicoExchange> linkFlows = getLinkFlows(flows);
-				for (PicoExchange linkFlow : linkFlows) {
-					LongPair provider = providers.get(linkFlow);
+				for (PicoExchange link : linkFlows) {
+					LongPair provider = providers.get(link);
 					if (provider == null)
 						continue;
-					LongPair recipientInput = new LongPair(
-							indexFlow.getFirst(), linkFlow.exchangeID);
-					graph.putLink(recipientInput, provider);
+					LongPair l = LongPair.of(link.processID, link.exchangeID);
+					graph.putLink(l, provider);
 					if (!handled.contains(provider) && !nextBlock.contains(provider))
 						nextBlock.add(provider);
 				}

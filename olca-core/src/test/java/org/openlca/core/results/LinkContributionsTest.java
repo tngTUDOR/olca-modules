@@ -70,7 +70,7 @@ public class LinkContributionsTest {
 						LongPair.of(i + 2, i + 2));
 			}
 		}
-		Assert.assertEquals(size - 1, graph.getLinkedFlows().size());
+		Assert.assertEquals(size - 1, graph.getLinkFlows().size());
 		LinkContributions cons = LinkContributions.calculate(techMatrix, graph,
 				s);
 		for (int i = 0; i < size; i++) {

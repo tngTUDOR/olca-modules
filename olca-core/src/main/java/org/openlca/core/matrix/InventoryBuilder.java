@@ -112,7 +112,7 @@ class InventoryBuilder {
 
 	private void addProcessLink(LongPair processProduct, PicoExchange e,
 			LongPair inputProduct) {
-		LongPair linkedOutput = techGraph.getLinkedTarget(inputProduct);
+		LongPair linkedOutput = techGraph.getIndexFlow(inputProduct);
 		int row = techGraph.index.getIndex(linkedOutput);
 		add(row, processProduct, technologyMatrix, e);
 	}

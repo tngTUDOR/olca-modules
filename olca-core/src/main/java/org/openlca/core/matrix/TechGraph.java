@@ -30,38 +30,33 @@ public class TechGraph {
 	}
 
 	/**
-	 * Adds a link between the given exchanges to this index. For products the
-	 * output is added to the index if it is not yet contained. Product inputs
-	 * are not part of the index. For waste flows it is the other way around:
-	 * The waste input is part of the index and is added if it is not yet
-	 * contained but the waste output is not part of the index.
+	 * Adds a link between the given link flow and index flow.
 	 */
-	public void putLink(LongPair input, LongPair output) {
-		index.put(output);
-		techLinks.put(input, output);
-		// TODO: check waste links -> use PicoExchange as type
+	public void putLink(LongPair linkFlow, LongPair indexFlow) {
+		index.put(indexFlow);
+		techLinks.put(linkFlow, indexFlow);
 	}
 
 	/**
 	 * Returns true if the given flow is a product input or a waste output that
 	 * is linked to a flow of this index.
 	 */
-	public boolean isLinked(LongPair flow) {
-		return techLinks.containsKey(flow);
+	public boolean isLinked(LongPair linkFlow) {
+		return techLinks.containsKey(linkFlow);
 	}
 
 	/**
-	 * Returns the output product or waste input to which the given flow is
-	 * linked, or null if it is not linked.
+	 * Returns the index flow (product output or waste input) for the given link
+	 * flow (product input or waste output).
 	 */
-	public LongPair getLinkedTarget(LongPair flow) {
-		return techLinks.get(flow);
+	public LongPair getIndexFlow(LongPair linkFlow) {
+		return techLinks.get(linkFlow);
 	}
 
 	/**
 	 * Returns all input products or waste outputs that are linked.
 	 */
-	public Set<LongPair> getLinkedFlows() {
+	public Set<LongPair> getLinkFlows() {
 		return techLinks.keySet();
 	}
 

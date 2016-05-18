@@ -33,9 +33,9 @@ class UpstreamTreeCalculator {
 
 	private Multimap<LongPair, LongPair> makeLinks(TechGraph graph) {
 		Multimap<LongPair, LongPair> links = ArrayListMultimap.create();
-		for (LongPair input : graph.getLinkedFlows()) {
+		for (LongPair input : graph.getLinkFlows()) {
 			long recipientProcess = input.getFirst();
-			LongPair provider = graph.getLinkedTarget(input);
+			LongPair provider = graph.getIndexFlow(input);
 			for (LongPair recipient : graph.index.getProcessFlows(recipientProcess))
 				links.put(recipient, provider);
 		}
