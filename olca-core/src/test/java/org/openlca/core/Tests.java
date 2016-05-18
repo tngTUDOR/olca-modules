@@ -7,11 +7,16 @@ import java.util.List;
 import org.openlca.core.database.BaseDao;
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.NativeSql;
+import org.openlca.core.database.ProcessDao;
 import org.openlca.core.database.derby.DerbyDatabase;
 import org.openlca.core.database.upgrades.Upgrades;
 import org.openlca.core.math.IMatrixSolver;
 import org.openlca.core.math.JavaSolver;
 import org.openlca.core.model.CategorizedEntity;
+import org.openlca.core.model.Exchange;
+import org.openlca.core.model.Flow;
+import org.openlca.core.model.Process;
+import org.openlca.util.Strings;
 
 public class Tests {
 
@@ -105,4 +110,32 @@ public class Tests {
 			throw new RuntimeException("failed to clear database", e);
 		}
 	}
+
+	/**
+	 * Returns the (first) process with the given name from the database, or
+	 * null if there is no such process.
+	 */
+	public static Process getProcess(String name) {
+		ProcessDao dao = new ProcessDao(getDb());
+		List<Process> list = dao.getForName(name);
+		return list.isEmpty() ? null : list.get(0);
+	}
+
+	/**
+	 * Returns the first exchange with a flow with the given name from the
+	 * process, or null if there is no such exchange.
+	 */
+	public static Exchange getExchange(Process p, String flowName) {
+		if (p == null)
+			return null;
+		for (Exchange e : p.getExchanges()) {
+			Flow f = e.getFlow();
+			if (f == null)
+				continue;
+			if (Strings.nullOrEqual(f.getName(), flowName))
+				return e;
+		}
+		return null;
+	}
+
 }

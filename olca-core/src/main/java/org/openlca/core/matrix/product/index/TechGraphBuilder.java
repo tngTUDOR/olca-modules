@@ -50,22 +50,19 @@ public class TechGraphBuilder implements IProductIndexBuilder {
 		while (!block.isEmpty()) {
 			List<LongPair> nextBlock = new ArrayList<>();
 			log.trace("fetch next block with {} entries", block.size());
-			Map<Long, List<PicoExchange>> exchanges = fetchExchanges(block);
-			for (LongPair recipient : block) {
-				handled.add(recipient);
-				List<PicoExchange> processExchanges = exchanges.get(recipient
-						.getFirst());
-				List<PicoExchange> productInputs = getProductInputs(
-						processExchanges);
-				for (PicoExchange productInput : productInputs) {
-					LongPair provider = providers.get(productInput);
+			Map<Long, List<PicoExchange>> allFlows = fetchExchanges(block);
+			for (LongPair indexFlow : block) {
+				handled.add(indexFlow);
+				List<PicoExchange> flows = allFlows.get(indexFlow.getFirst());
+				List<PicoExchange> linkFlows = getLinkFlows(flows);
+				for (PicoExchange linkFlow : linkFlows) {
+					LongPair provider = providers.get(linkFlow);
 					if (provider == null)
 						continue;
 					LongPair recipientInput = new LongPair(
-							recipient.getFirst(), productInput.exchangeID);
+							indexFlow.getFirst(), linkFlow.exchangeID);
 					graph.putLink(recipientInput, provider);
-					if (!handled.contains(provider)
-							&& !nextBlock.contains(provider))
+					if (!handled.contains(provider) && !nextBlock.contains(provider))
 						nextBlock.add(provider);
 				}
 			}
@@ -74,34 +71,30 @@ public class TechGraphBuilder implements IProductIndexBuilder {
 		return graph;
 	}
 
-	private List<PicoExchange> getProductInputs(
-			List<PicoExchange> processExchanges) {
-		if (processExchanges == null || processExchanges.isEmpty())
+	/**
+	 * Returns product inputs or waste outputs from the given list that could be
+	 * linked to product outputs or waste inputs.
+	 */
+	private List<PicoExchange> getLinkFlows(List<PicoExchange> flows) {
+		if (flows == null || flows.isEmpty())
 			return Collections.emptyList();
-		List<PicoExchange> productInputs = new ArrayList<>();
-		for (PicoExchange exchange : processExchanges) {
-			if (!exchange.isInput)
-				continue;
-			if (exchange.flowType == FlowType.ELEMENTARY_FLOW)
-				continue;
-			productInputs.add(exchange);
+		List<PicoExchange> list = new ArrayList<>();
+		for (PicoExchange e : flows) {
+			if (e.isInput && e.flowType == FlowType.PRODUCT_FLOW)
+				list.add(e);
+			if (!e.isInput && e.flowType == FlowType.WASTE_FLOW)
+				list.add(e);
 		}
-		return productInputs;
+		return list;
 	}
 
 	private Map<Long, List<PicoExchange>> fetchExchanges(List<LongPair> block) {
 		if (block.isEmpty())
 			return Collections.emptyMap();
 		Set<Long> processIds = new HashSet<>();
-		for (LongPair pair : block)
+		for (LongPair pair : block) {
 			processIds.add(pair.getFirst());
-		try {
-			return exchanges.get(processIds);
-		} catch (Exception e) {
-			Logger log = LoggerFactory.getLogger(getClass());
-			log.error("failed to load exchanges from cache", e);
-			return Collections.emptyMap();
 		}
+		return exchanges.get(processIds);
 	}
-
 }
