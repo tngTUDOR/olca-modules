@@ -1,0 +1,55 @@
+- unitGroup: &Units_of_mass
+    name: Units of mass
+    units:
+      - &kg
+        name: kg
+        factor: 1.0
+    refUnit: *kg
+
+- quantity: &Mass
+    name: Mass
+    unitGroup: *Units_of_mass
+
+- flow: &w
+    name: Waste
+    type: waste
+    refQuantity: *Mass
+
+- flow: &p1
+    name: Product 1
+    type: product
+    refQuantity: *Mass
+
+- flow: &p2
+    name: Product 2
+    type: product
+    refQuantity: *Mass
+
+- process:
+    name: Waste treatment
+    inputs:
+      - flow: *w
+        amount: 1
+        unit: *kg
+
+- process:
+    name: Supplier
+    outputs:
+      - flow: *p1
+        amount: 1
+        unit: *kg
+
+- process:
+    name: Ref. process
+    inputs:
+      - flow: *p1
+        amount: 2
+        unit: *kg
+    outputs:
+      - flow: *w
+        amount: 0.5
+        unit: *kg
+      - flow: *p2
+        amount: 1
+        unit: *kg
+ 

@@ -7,20 +7,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.openlca.core.database.IDatabase;
 import org.openlca.core.matrix.LongPair;
 import org.openlca.core.matrix.TechGraph;
 import org.openlca.core.matrix.dbtables.ExchangeTable;
 import org.openlca.core.matrix.dbtables.PicoExchange;
 import org.openlca.core.matrix.dbtables.ProviderTable;
 import org.openlca.core.model.FlowType;
+import org.openlca.core.model.ProcessType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TechGraphBuilder implements IProductIndexBuilder {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
-	private ExchangeTable exchanges;
-	private ProviderTable providers;
+	private final ExchangeTable exchanges;
+	private final ProviderTable providers;
+
+	public TechGraphBuilder(IDatabase db, ProcessType preferredType) {
+		this.exchanges = ExchangeTable.create(db);
+		this.providers = ProviderTable.create(db, preferredType);
+	}
 
 	public TechGraphBuilder(ExchangeTable exchanges, ProviderTable providers) {
 		this.exchanges = exchanges;
