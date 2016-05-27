@@ -1,18 +1,71 @@
-# The openLCA YAML data format
+The openLCA YAML data format
+============================
 The openLCA core module contains functions to read data sets from 
 [YAML](http://www.yaml.org/) files. The aim of the format is to get (test) data 
-quickly into openLCA with a human readable format without syntax ceremonies. 
+quickly into openLCA with a human readable format with minimal syntax elements. 
 This format is described in the following sections.
 
-## Basic concepts
+## Idea and basic concepts
+The idea is to define LCA models in single, text based documents in a very 
+simple format that has syntax highlighting and editing support in text editors, 
+is version control friendly, and can be easily parsed in standard programming 
+languages. 
 
-### Multiple data set types
+To be compatible with openLCA (but also with other LCA data formats like 
+EcoSpold or ILCD) LCA models are stored in several data set types and a document
+just contains a list of data sets:
 
-### Anchors and references
+```yaml
+- unitGroup:
+    name: Units of mass
 
-### (TODO: Includes)
+- quantity:
+    name: Mass
 
-### Minimal required information
+- flow:
+    name: Steel
+```
+
+A data set is an object with an attribute that defines the data set type (e.g.
+`unitGroup`, `flow`, `process`, etc.). Every data set should have a name and can
+also have an UUID that can be used to link the data set to existing models. And
+of course the format can be easily extended with custom attributes (like 
+`sameAs` in the following example) and data sets:
+
+```yaml
+- unitGroup:
+    name: Units of mass
+    uuid: 93a60a57-a4c8-11da-a746-0800200c9a66
+    sameAs: http://eplca.jrc.ec.europa.eu/ELCD3/resource/unitgroups/93a60a57-a4c8-11da-a746-0800200c9a66
+```
+
+A data set can be referenced from another data set by its name:
+
+```yaml
+- quantity:
+    name: Mass
+    unitGroup: Units of mass
+```
+
+Additionally, the format supports anchors (`&Units_of_mass`) and references 
+(`*Units_of_mass`) as defined in the YAML format for referencing data sets and 
+objects:
+
+```yaml
+- unitGroup: &Units_of_mass
+    name: Units of mass
+    
+- quantity:
+    name: Mass
+    unitGroup: *Units_of_mass
+```
+
+This is useful for referencing objects that do not have a name (like an input
+or output) or data sets where the name is not unique (in this case the data set
+should also have a UUID). Note that an object are data set can be only 
+referenced when it is already defined.
+
+TODO: categories, includes (documents in documents)
 
 
 ## Data set types
