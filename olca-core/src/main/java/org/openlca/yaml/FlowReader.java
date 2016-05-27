@@ -23,9 +23,8 @@ class FlowReader {
 		Flow flow = new Flow();
 		Util.setBaseAttributes(flow, map);
 		flow.setFlowType(getType(map));
-		String refPropertyId = Util.refId(map, "refQuantity", FlowProperty.class);
-		FlowProperty property = Util.get(doc.flowProperties, refPropertyId);
-		flow.setReferenceFlowProperty(property);
+		FlowProperty prop = Ref.get(doc, map.get("refQuantity"), FlowProperty.class);
+		flow.setReferenceFlowProperty(prop);
 		Collection<?> quantities = Util.list(map, "quanties");
 		if (!quantities.isEmpty()) {
 			addQuantities(quantities, flow);

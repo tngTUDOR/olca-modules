@@ -19,8 +19,7 @@ class FlowPropertyReader {
 			return;
 		FlowProperty prop = new FlowProperty();
 		Util.setBaseAttributes(prop, map);
-		String unitGroupId = Util.refId(map, "unitGroup", UnitGroup.class);
-		UnitGroup group = Util.get(doc.unitGroups, unitGroupId);
+		UnitGroup group = Ref.get(doc, map.get("unitGroup"), UnitGroup.class);
 		prop.setUnitGroup(group);
 		doc.flowProperties.add(prop);
 	}

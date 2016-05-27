@@ -10,6 +10,7 @@ import org.openlca.core.model.Process;
 import org.openlca.core.model.ProcessType;
 import org.openlca.core.model.Unit;
 import org.openlca.core.model.UnitGroup;
+import org.openlca.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,15 +55,14 @@ class ProcessReader {
 			Exchange e = new Exchange();
 			e.setInput(inputs);
 			e.setAmountValue(Util.decimal(map, "amount", 0));
-			String flowId = Util.refId(map, "flow", Flow.class);
-			Flow flow = Util.get(doc.flows, flowId);
+			Flow flow = Ref.get(doc, map.get("flow"), Flow.class);
 			if (flow == null) {
 				log.error("Invalid exchange {} -> flow not found", map);
 				continue;
 			}
 			e.setFlow(flow);
-			String unitId = Util.refId(map, "unit", Unit.class);
-			Quan quan = Quan.find(flow, unitId);
+			Unit unit = Ref.get(doc, map.get("unit"), Unit.class);
+			Quan quan = Quan.find(flow, unit);
 			if (quan == null) {
 				log.error("Invalid exchange {} -> no quantity/unit", map);
 				continue;
@@ -83,28 +83,28 @@ class ProcessReader {
 			this.unit = unit;
 		}
 
-		static Quan find(Flow flow, String unitId) {
-			if (flow == null || unitId == null)
+		static Quan find(Flow flow, Unit unit) {
+			if (flow == null || unit == null)
 				return null;
-			Quan q = find(flow.getReferenceFactor(), unitId);
+			Quan q = find(flow.getReferenceFactor(), unit);
 			if (q != null)
 				return q;
 			for (FlowPropertyFactor f : flow.getFlowPropertyFactors()) {
-				q = find(f, unitId);
+				q = find(f, unit);
 				if (q != null)
 					return q;
 			}
 			return null;
 		}
 
-		private static Quan find(FlowPropertyFactor f, String unitId) {
+		private static Quan find(FlowPropertyFactor f, Unit unit) {
 			if (f == null || f.getFlowProperty() == null)
 				return null;
 			UnitGroup ug = f.getFlowProperty().getUnitGroup();
 			if (ug == null)
 				return null;
 			for (Unit u : ug.getUnits()) {
-				if (unitId.equalsIgnoreCase(u.getRefId()))
+				if (Strings.nullOrEqual(u.getRefId(), unit.getRefId()))
 					return new Quan(f, u);
 			}
 			return null;

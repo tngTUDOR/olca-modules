@@ -69,11 +69,6 @@ class Util {
 		return KeyGen.get(type.getSimpleName() + "/" + name);
 	}
 
-	static String refId(Map<?, ?> root, String refName, Class<? extends RootEntity> type) {
-		Map<?, ?> refMap = map(root, refName);
-		return getId(refMap, type);
-	}
-
 	static <T extends RootEntity> T get(Collection<T> list, T entity) {
 		if (list == null || entity == null)
 			return null;
