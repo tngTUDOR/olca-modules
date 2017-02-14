@@ -2,30 +2,13 @@ package org.openlca.io.ecospold2.input;
 
 import java.util.Objects;
 
-import org.openlca.ecospold2.DataSet;
-import org.openlca.ecospold2.IntermediateExchange;
-import org.openlca.ecospold2.Spold2;
+import spold2.DataSet;
+import spold2.IntermediateExchange;
+import spold2.Spold2;
 
 class Exchanges {
 
 	private Exchanges() {
-	}
-
-	/** Find the reference flow (outputGroup=0) from the given data set. */
-	static IntermediateExchange findRef(DataSet ds) {
-		if (ds == null)
-			return null;
-		IntermediateExchange candidate = null;
-		for (IntermediateExchange e : Spold2.getProducts(ds)) {
-			Integer og = e.outputGroup;
-			if (og == null || og.intValue() != 0)
-				continue;
-			Double a = e.amount;
-			if (a != null && a.doubleValue() != 0)
-				return e;
-			candidate = e;
-		}
-		return candidate;
 	}
 
 	/** Returns true if the given exchanges are equal; i.e. have the same ID. */

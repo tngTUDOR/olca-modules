@@ -9,8 +9,8 @@ import org.openlca.core.model.ImpactCategory;
 import org.openlca.core.model.ImpactFactor;
 import org.openlca.core.model.ImpactMethod;
 import org.openlca.core.model.Unit;
-import org.openlca.ilcd.commons.Ref;
 import org.openlca.ilcd.commons.LangString;
+import org.openlca.ilcd.commons.Ref;
 import org.openlca.ilcd.io.DataStoreException;
 import org.openlca.ilcd.methods.DataSetInfo;
 import org.openlca.ilcd.methods.Factor;
@@ -37,7 +37,7 @@ public class ImpactMethodExport {
 					lciaMethod.otherAttributes);
 			addMethodInfo(method, impact, lciaMethod);
 			addFactors(impact, lciaMethod);
-			config.store.put(lciaMethod, impact.getRefId());
+			config.store.put(lciaMethod);
 		}
 	}
 
@@ -69,12 +69,12 @@ public class ImpactMethodExport {
 		lciaMethod.characterisationFactors = list;
 		for (ImpactFactor olcaFactor : impact.getImpactFactors()) {
 			Factor ilcdFactor = new Factor();
-			list.getFactor().add(ilcdFactor);
+			list.factors.add(ilcdFactor);
 			// TODO: uncertainty values + formulas
-			ilcdFactor.setMeanValue(getRefAmount(olcaFactor));
+			ilcdFactor.meanValue = getRefAmount(olcaFactor);
 			Ref ref = ExportDispatch.forwardExportCheck(
 					olcaFactor.getFlow(), config);
-			ilcdFactor.setReferenceToFlowDataSet(ref);
+			ilcdFactor.flow = ref;
 		}
 	}
 

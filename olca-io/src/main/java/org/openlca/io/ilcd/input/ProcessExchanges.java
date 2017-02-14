@@ -36,8 +36,8 @@ class ProcessExchanges {
 	}
 
 	void map(ProcessBag ilcdProcess, Process process) {
-		for (org.openlca.ilcd.processes.Exchange iExchange : ilcdProcess
-				.getExchanges()) {
+		mappedPairs.clear();
+		for (org.openlca.ilcd.processes.Exchange iExchange : ilcdProcess.getExchanges()) {
 			ExchangeFlow exchangeFlow = new ExchangeFlow(iExchange);
 			exchangeFlow.findOrImport(config);
 			Exchange exchange = createExchange(iExchange, exchangeFlow);
@@ -129,13 +129,14 @@ class ProcessExchanges {
 
 	private void mapAllocation(Process process) {
 		for (MappedPair p : mappedPairs) {
-			if (p.iExchange.allocation == null)
+			AllocationFactor[] factors = p.iExchange.allocations;
+			if (factors == null)
 				continue;
-			for (AllocationFactor iFactor : p.iExchange.allocation.factors) {
-				Long productId = findMappedFlowId(iFactor.referenceToCoProduct);
+			for (AllocationFactor iFactor : factors) {
+				Long productId = findMappedFlowId(iFactor.productExchangeId);
 				if (productId == null)
 					continue;
-				createAllocationFactor(p, productId, iFactor.allocatedFraction,
+				createAllocationFactor(p, productId, iFactor.fraction,
 						process);
 			}
 		}

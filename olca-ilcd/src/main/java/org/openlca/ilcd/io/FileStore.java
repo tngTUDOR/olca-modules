@@ -7,7 +7,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Iterator;
 
+import org.openlca.ilcd.commons.IDataSet;
+import org.openlca.ilcd.commons.Ref;
+import org.openlca.ilcd.sources.FileRef;
 import org.openlca.ilcd.sources.Source;
+import org.openlca.ilcd.util.Sources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +62,7 @@ public class FileStore implements DataStore {
 	public <T> T get(Class<T> type, String id) throws DataStoreException {
 		log.trace("Get {} for id {} from file", type, id);
 		try {
-			File file = findFile(type, id);
+			File file = getFile(type, id);
 			if (file != null) {
 				log.trace("Unmarshal from file {}", file);
 				return binder.fromFile(type, file);
@@ -88,12 +92,28 @@ public class FileStore implements DataStore {
 		}
 	}
 
+	/**
+	 * Get the file for the given reference. The file may exist or not. Returns
+	 * null if the reference does not contain a valid file location.
+	 */
+	public File getExternalDocument(FileRef ref) {
+		String name = Sources.getFileName(ref);
+		if (name == null)
+			return null;
+		File docDir = new File(rootDir, "external_docs");
+		if (!docDir.exists())
+			docDir.mkdirs();
+		return new File(docDir, name);
+	}
+
 	@Override
-	public void put(Object obj, String id) throws DataStoreException {
-		log.trace("Store {} for id {} in file.", obj, id);
+	public void put(IDataSet ds) throws DataStoreException {
+		if (ds == null)
+			return;
+		log.trace("Store {} in file.", ds);
 		try {
-			File file = newFile(obj.getClass(), id);
-			binder.toFile(obj, file);
+			File file = newFile(ds.getClass(), ds.getUUID());
+			binder.toFile(ds, file);
 		} catch (Exception e) {
 			String message = "Cannot store in file";
 			log.error(message, e);
@@ -101,20 +121,22 @@ public class FileStore implements DataStore {
 		}
 	}
 
-	public void put(Source source, String id, File file)
+	public void put(Source source, File[] files)
 			throws DataStoreException {
-		log.trace("Store source {} with file {}", id, file);
-		put(source, id);
-		if (file == null || !file.exists())
+		log.trace("Store source {} with files", source);
+		put(source);
+		if (files == null || files.length == 0)
 			return;
 		try {
 			File folder = new File(rootDir, "external_docs");
 			if (!folder.exists())
 				folder.mkdirs();
-			File newFile = new File(folder, file.getName());
-			Files.copy(file.toPath(), newFile.toPath());
+			for (File file : files) {
+				File newFile = new File(folder, file.getName());
+				Files.copy(file.toPath(), newFile.toPath());
+			}
 		} catch (Exception e) {
-			String message = "Cannot store source file " + file;
+			String message = "Cannot store source files";
 			log.error(message, e);
 			throw new DataStoreException(message);
 		}
@@ -124,7 +146,7 @@ public class FileStore implements DataStore {
 	public <T> boolean delete(Class<T> type, String id)
 			throws DataStoreException {
 		log.trace("Delete file if exists for class {} with id {}", type, id);
-		File file = findFile(type, id);
+		File file = getFile(type, id);
 		if (file == null)
 			return false;
 		else {
@@ -144,7 +166,7 @@ public class FileStore implements DataStore {
 	public <T> boolean contains(Class<T> type, String id)
 			throws DataStoreException {
 		log.trace("Contains file for class {} with id {}", type, id);
-		File file = findFile(type, id);
+		File file = getFile(type, id);
 		boolean contains = file != null && file.exists();
 		log.trace("Contains={}", contains);
 		return contains;
@@ -158,8 +180,16 @@ public class FileStore implements DataStore {
 		return file;
 	}
 
-	private File findFile(Class<?> clazz, String id) {
+	public File getFile(Ref ref) {
+		if (ref == null || ref.type == null || ref.uuid == null)
+			return null;
+		return getFile(ref.getDataSetClass(), ref.uuid);
+	}
+
+	public File getFile(Class<?> clazz, String id) {
 		log.trace("Find file for class {} with id {}", clazz, id);
+		if (clazz == null || id == null)
+			return null;
 		File dir = getFolder(clazz);
 		File file = null;
 		for (File f : dir.listFiles()) {

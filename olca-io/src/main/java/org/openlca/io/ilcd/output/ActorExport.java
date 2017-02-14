@@ -2,16 +2,16 @@ package org.openlca.io.ilcd.output;
 
 import org.openlca.core.model.Actor;
 import org.openlca.core.model.Version;
-import org.openlca.ilcd.commons.AdminInfo;
 import org.openlca.ilcd.commons.Classification;
 import org.openlca.ilcd.commons.DataEntry;
 import org.openlca.ilcd.commons.LangString;
 import org.openlca.ilcd.commons.Publication;
+import org.openlca.ilcd.contacts.AdminInfo;
 import org.openlca.ilcd.contacts.Contact;
 import org.openlca.ilcd.contacts.ContactInfo;
 import org.openlca.ilcd.contacts.DataSetInfo;
 import org.openlca.ilcd.io.DataStoreException;
-import org.openlca.ilcd.util.Reference;
+import org.openlca.ilcd.util.Refs;
 
 public class ActorExport {
 
@@ -37,7 +37,7 @@ public class ActorExport {
 		contact.contactInfo = info;
 		info.dataSetInfo = makeDataSetInfo();
 		contact.adminInfo = makeAdminInfo();
-		config.store.put(contact, actor.getRefId());
+		config.store.put(contact);
 		this.actor = null;
 		return contact;
 	}
@@ -87,8 +87,7 @@ public class ActorExport {
 		DataEntry entry = new DataEntry();
 		info.dataEntry = entry;
 		entry.timeStamp = Out.getTimestamp(actor);
-		entry.formats.add(
-				Reference.forIlcdFormat());
+		entry.formats.add(Refs.ilcd());
 		addPublication(info);
 		return info;
 	}

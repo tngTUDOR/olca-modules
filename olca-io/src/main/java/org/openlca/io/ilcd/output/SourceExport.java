@@ -5,17 +5,17 @@ import java.io.File;
 import org.openlca.core.database.FileStore;
 import org.openlca.core.model.ModelType;
 import org.openlca.core.model.Version;
-import org.openlca.ilcd.commons.AdminInfo;
 import org.openlca.ilcd.commons.Classification;
 import org.openlca.ilcd.commons.DataEntry;
 import org.openlca.ilcd.commons.LangString;
 import org.openlca.ilcd.commons.Publication;
 import org.openlca.ilcd.io.DataStoreException;
+import org.openlca.ilcd.sources.AdminInfo;
 import org.openlca.ilcd.sources.DataSetInfo;
 import org.openlca.ilcd.sources.FileRef;
 import org.openlca.ilcd.sources.Source;
 import org.openlca.ilcd.sources.SourceInfo;
-import org.openlca.ilcd.util.Reference;
+import org.openlca.ilcd.util.Refs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,10 +49,10 @@ public class SourceExport {
 		info.dataSetInfo = dataSetInfo;
 		File extFile = getExternalFile();
 		if (extFile == null)
-			config.store.put(iSource, source.getRefId());
+			config.store.put(iSource);
 		else {
 			addFileRef(dataSetInfo, extFile);
-			config.store.put(iSource, source.getRefId(), extFile);
+			config.store.put(iSource, new File[] { extFile });
 		}
 		return iSource;
 	}
@@ -111,8 +111,7 @@ public class SourceExport {
 		DataEntry entry = new DataEntry();
 		info.dataEntry = entry;
 		entry.timeStamp = Out.getTimestamp(source);
-		entry.formats.add(
-				Reference.forIlcdFormat());
+		entry.formats.add(Refs.ilcd());
 		addPublication(info);
 		return info;
 	}

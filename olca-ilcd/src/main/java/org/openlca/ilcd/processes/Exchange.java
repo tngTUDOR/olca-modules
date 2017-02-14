@@ -1,7 +1,6 @@
 package org.openlca.ilcd.processes;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +11,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
@@ -29,19 +29,19 @@ import org.openlca.ilcd.commons.annotations.Label;
 		"flow",
 		"location",
 		"exchangeFunction",
-		"exchangeDirection",
-		"parameterName",
+		"direction",
+		"variable",
 		"meanAmount",
 		"resultingAmount",
 		"minimumAmount",
 		"maximumAmount",
 		"uncertaintyDistribution",
 		"relativeStandardDeviation95In",
-		"allocation",
+		"allocations",
 		"dataSourceType",
 		"dataDerivation",
-		"dataSources",
-		"generalComment",
+		"sources",
+		"comment",
 		"other" })
 public class Exchange implements Serializable {
 
@@ -60,13 +60,15 @@ public class Exchange implements Serializable {
 	public ExchangeFunction exchangeFunction;
 
 	@XmlElement(name = "exchangeDirection")
-	public ExchangeDirection exchangeDirection;
+	public ExchangeDirection direction;
 
 	@XmlElement(name = "referenceToVariable")
-	public String parameterName;
+	public String variable;
 
+	@XmlElement(name = "meanAmount")
 	public double meanAmount;
 
+	@XmlElement(name = "resultingAmount")
 	public Double resultingAmount;
 
 	public Double minimumAmount;
@@ -76,21 +78,24 @@ public class Exchange implements Serializable {
 	@XmlElement(name = "uncertaintyDistributionType")
 	public UncertaintyDistribution uncertaintyDistribution;
 
-	public BigDecimal relativeStandardDeviation95In;
+	public Double relativeStandardDeviation95In;
 
-	@XmlElement(name = "allocations")
-	public Allocation allocation;
+	@XmlElementWrapper(name = "allocations")
+	@XmlElement(name = "allocation", required = true)
+	public AllocationFactor[] allocations;
 
 	public String dataSourceType;
 
 	@XmlElement(name = "dataDerivationTypeStatus")
 	public DataDerivation dataDerivation;
 
-	@XmlElement(name = "referencesToDataSource")
-	public DataSourceReferenceList dataSources;
+	@XmlElementWrapper(name = "referencesToDataSource")
+	@XmlElement(name = "referenceToDataSource")
+	public Ref[] sources;
 
 	@Label
-	public final List<LangString> generalComment = new ArrayList<>();
+	@XmlElement(name = "generalComment")
+	public final List<LangString> comment = new ArrayList<>();
 
 	@XmlElement(namespace = "http://lca.jrc.it/ILCD/Common")
 	public Other other;
@@ -98,4 +103,55 @@ public class Exchange implements Serializable {
 	@XmlAnyAttribute
 	public Map<QName, String> otherAttributes = new HashMap<>();
 
+	@Override
+	public Exchange clone() {
+		Exchange clone = new Exchange();
+		clone.id = id;
+		if (flow != null)
+			clone.flow = flow.clone();
+		clone.location = location;
+		clone.exchangeFunction = exchangeFunction;
+		clone.direction = direction;
+		clone.variable = variable;
+		clone.meanAmount = meanAmount;
+		clone.resultingAmount = resultingAmount;
+		clone.minimumAmount = minimumAmount;
+		clone.maximumAmount = maximumAmount;
+		clone.uncertaintyDistribution = uncertaintyDistribution;
+		clone.relativeStandardDeviation95In = relativeStandardDeviation95In;
+		clone.dataSourceType = dataSourceType;
+		clone.dataDerivation = dataDerivation;
+		clone.sources = Ref.copy(sources);
+		LangString.copy(comment, clone.comment);
+		cloneAllocations(clone);
+		if (other != null)
+			clone.other = other.clone();
+		clone.otherAttributes.putAll(otherAttributes);
+		return clone;
+	}
+
+	private void cloneAllocations(Exchange clone) {
+		if (allocations == null)
+			return;
+		clone.allocations = new AllocationFactor[allocations.length];
+		for (int i = 0; i < allocations.length; i++) {
+			if (allocations[i] == null)
+				continue;
+			clone.allocations[i] = allocations[i].clone();
+		}
+	}
+
+	/** Adds the given allocation factor to this exchange. */
+	public void add(AllocationFactor f) {
+		if (f == null)
+			return;
+		if (allocations == null) {
+			allocations = new AllocationFactor[] { f };
+			return;
+		}
+		AllocationFactor[] next = new AllocationFactor[allocations.length + 1];
+		System.arraycopy(allocations, 0, next, 0, allocations.length);
+		next[allocations.length] = f;
+		allocations = next;
+	}
 }

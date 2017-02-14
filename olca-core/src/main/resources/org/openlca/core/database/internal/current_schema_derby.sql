@@ -22,7 +22,7 @@ CREATE TABLE openlca_version (
 	version SMALLINT	
 	
 );
-INSERT INTO openlca_version (version) VALUES (5);
+INSERT INTO openlca_version (version) VALUES (6);
 
 
 CREATE TABLE tbl_categories (
@@ -259,7 +259,7 @@ CREATE TABLE tbl_process_docs (
 	data_selection CLOB(64 K), 
 	f_reviewer BIGINT, 
 	
-	project VARCHAR(255), 
+	project CLOB(64 K), 
 	creation_date TIMESTAMP, 
 	intended_application CLOB(64 K), 
 	restrictions CLOB(64 K),

@@ -1,14 +1,14 @@
 package org.openlca.io.ecospold2.output;
 
-import org.openlca.ecospold2.Activity;
-import org.openlca.ecospold2.ActivityDescription;
-import org.openlca.ecospold2.DataSet;
-import org.openlca.ecospold2.ElementaryExchange;
-import org.openlca.ecospold2.Geography;
-import org.openlca.ecospold2.IntermediateExchange;
-import org.openlca.ecospold2.TimePeriod;
-import org.openlca.ecospold2.UserMasterData;
-import org.openlca.ecospold2.master.ActivityIndexEntry;
+import spold2.Activity;
+import spold2.ActivityDescription;
+import spold2.ActivityIndexEntry;
+import spold2.DataSet;
+import spold2.ElementaryExchange;
+import spold2.Geography;
+import spold2.IntermediateExchange;
+import spold2.Time;
+import spold2.UserMasterData;
 
 /**
  * Adds master data entries to an EcoSpold 02 activity data set. This is not
@@ -69,7 +69,7 @@ final class MasterData {
 			indexEntry.activityNameId = activity.activityNameId;
 			indexEntry.id = activity.id;
 		}
-		TimePeriod timePeriod = d.timePeriod;
+		Time timePeriod = d.timePeriod;
 		if (timePeriod != null) {
 			indexEntry.endDate = timePeriod.end;
 			indexEntry.startDate = timePeriod.start;

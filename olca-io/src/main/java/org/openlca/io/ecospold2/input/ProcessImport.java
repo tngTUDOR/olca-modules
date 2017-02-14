@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.openlca.core.database.BaseDao;
-import org.openlca.core.database.DQSystemDao;
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.ParameterDao;
 import org.openlca.core.database.ProcessDao;
@@ -21,22 +20,23 @@ import org.openlca.core.model.Process;
 import org.openlca.core.model.ProcessType;
 import org.openlca.core.model.Unit;
 import org.openlca.core.model.UnitGroup;
-import org.openlca.ecospold2.Activity;
-import org.openlca.ecospold2.Classification;
-import org.openlca.ecospold2.DataSet;
-import org.openlca.ecospold2.ElementaryExchange;
-import org.openlca.ecospold2.IntermediateExchange;
-import org.openlca.ecospold2.PedigreeMatrix;
-import org.openlca.ecospold2.RichText;
-import org.openlca.ecospold2.Spold2;
 import org.openlca.io.ecospold2.UncertaintyConverter;
+import org.openlca.util.DQSystems;
 import org.openlca.util.KeyGen;
-import org.openlca.util.Pedigree;
 import org.openlca.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
+
+import spold2.Activity;
+import spold2.Classification;
+import spold2.DataSet;
+import spold2.ElementaryExchange;
+import spold2.IntermediateExchange;
+import spold2.PedigreeMatrix;
+import spold2.RichText;
+import spold2.Spold2;
 
 class ProcessImport {
 
@@ -46,7 +46,7 @@ class ProcessImport {
 	private final ProcessDao dao;
 	private final PriceMapper prices;
 	private final ImportConfig config;
-	private DQSystem pedigreeSystem;
+	private final DQSystem dqSystem;
 
 	/** Exchanges that wait for a default provider: provider-id -> exchanges. */
 	private final HashMap<String, List<Exchange>> linkQueue = new HashMap<>();
@@ -57,6 +57,7 @@ class ProcessImport {
 		this.config = config;
 		dao = new ProcessDao(db);
 		prices = new PriceMapper(db);
+		dqSystem = DQSystems.ecoinvent(db);
 	}
 
 	public void importDataSet(DataSet dataSet) {
@@ -123,10 +124,7 @@ class ProcessImport {
 			log.warn("could not set a quantitative reference for process {}",
 					refId);
 		createElementaryExchanges(dataSet, process);
-		if (pedigreeSystem != null) {
-			pedigreeSystem = new DQSystemDao(db).insert(pedigreeSystem);
-			process.exchangeDqSystem = pedigreeSystem;
-		}
+		process.exchangeDqSystem = dqSystem;
 		new DocImportMapper(db).map(dataSet, process);
 		db.createDao(Process.class).insert(process);
 		index.putProcessId(refId, process.getId());
@@ -231,7 +229,7 @@ class ProcessImport {
 		// return isNeg != index.isNegativeFlow(refId) && exchange.isInput();
 	}
 
-	private Exchange createExchange(org.openlca.ecospold2.Exchange es2,
+	private Exchange createExchange(spold2.Exchange es2,
 			String flowRefId, Flow flow, Process process) {
 		if (flow == null || flow.getReferenceFlowProperty() == null)
 			return null;
@@ -245,31 +243,30 @@ class ProcessImport {
 		e.setUnit(unit);
 		e.setInput(es2.inputGroup != null);
 		double amount = es2.amount;
-		if (index.isMappedFlow(flowRefId))
-			amount = amount * index.getMappedFlowFactor(flowRefId);
-		e.setAmountValue(amount);
+		double f = 1;
+		if (index.isMappedFlow(flowRefId)) {
+			f = index.getMappedFlowFactor(flowRefId);
+		}
+		e.setAmountValue(amount * f);
+		e.setUncertainty(UncertaintyConverter.toOpenLCA(es2.uncertainty, f));
 		if (config.withParameters && config.withParameterFormulas)
-			mapFormula(es2, process, e);
-		e.setUncertainty(UncertaintyConverter.toOpenLCA(es2.uncertainty));
+			mapFormula(es2, process, e, f);
 		e.setDqEntry(getPedigreeMatrix(es2));
 		process.getExchanges().add(e);
 		return e;
 	}
 
-	private String getPedigreeMatrix(org.openlca.ecospold2.Exchange es2) {
+	private String getPedigreeMatrix(spold2.Exchange es2) {
 		if (es2 == null || es2.uncertainty == null)
 			return null;
 		PedigreeMatrix pm = es2.uncertainty.pedigreeMatrix;
 		if (pm == null)
 			return null;
-		if (pedigreeSystem == null) {
-			pedigreeSystem = Pedigree.get();
-		}
-		return pedigreeSystem.toString(pm.reliability, pm.completeness, pm.temporalCorrelation,
+		return dqSystem.toString(pm.reliability, pm.completeness, pm.temporalCorrelation,
 				pm.geographicalCorrelation, pm.technologyCorrelation);
 	}
 
-	private Unit getFlowUnit(org.openlca.ecospold2.Exchange original,
+	private Unit getFlowUnit(spold2.Exchange original,
 			String flowRefId, Flow flow) {
 		if (!index.isMappedFlow(flowRefId))
 			return index.getUnit(original.unitId);
@@ -282,16 +279,23 @@ class ProcessImport {
 		return ug.getReferenceUnit();
 	}
 
-	private void mapFormula(org.openlca.ecospold2.Exchange original,
-			Process process, Exchange exchange) {
+	private void mapFormula(spold2.Exchange original, Process process,
+			Exchange exchange, double factor) {
+		String formula = null;
 		String var = original.variableName;
-		if (Strings.notEmpty(var)) {
-			if (Parameters.contains(var, process.getParameters()))
-				exchange.setAmountFormula(var);
+		if (Strings.notEmpty(var)
+				&& Parameters.contains(var, process.getParameters())) {
+			formula = var;
 		} else if (Parameters.isValid(original.mathematicalRelation, config)) {
-			exchange.setAmountFormula(original.mathematicalRelation.trim());
+			formula = original.mathematicalRelation;
 		}
-
+		if (formula == null)
+			return;
+		formula = formula.trim();
+		if (factor == 1.0)
+			exchange.setAmountFormula(formula);
+		else
+			exchange.setAmountFormula(factor + " * (" + formula + ")");
 	}
 
 	private void addActivityLink(IntermediateExchange e, Exchange exchange) {

@@ -4,18 +4,17 @@ import java.math.BigInteger;
 
 import org.openlca.core.model.Unit;
 import org.openlca.core.model.Version;
-import org.openlca.ilcd.commons.AdminInfo;
 import org.openlca.ilcd.commons.Classification;
 import org.openlca.ilcd.commons.DataEntry;
 import org.openlca.ilcd.commons.LangString;
 import org.openlca.ilcd.commons.Publication;
 import org.openlca.ilcd.io.DataStoreException;
+import org.openlca.ilcd.units.AdminInfo;
 import org.openlca.ilcd.units.DataSetInfo;
 import org.openlca.ilcd.units.QuantitativeReference;
 import org.openlca.ilcd.units.UnitGroup;
 import org.openlca.ilcd.units.UnitGroupInfo;
-import org.openlca.ilcd.units.UnitList;
-import org.openlca.ilcd.util.Reference;
+import org.openlca.ilcd.util.Refs;
 import org.openlca.ilcd.util.UnitExtension;
 
 public class UnitGroupExport {
@@ -44,8 +43,8 @@ public class UnitGroupExport {
 		info.dataSetInfo = makeDataSetInfo();
 		info.quantitativeReference = makeQRef();
 		iUnitGroup.adminInfo = makeAdminInfo();
-		iUnitGroup.units = makeUnits();
-		config.store.put(iUnitGroup, unitGroup.getRefId());
+		makeUnits(iUnitGroup);
+		config.store.put(iUnitGroup);
 		this.unitGroup = null;
 		return iUnitGroup;
 	}
@@ -73,27 +72,25 @@ public class UnitGroupExport {
 		return qRef;
 	}
 
-	private UnitList makeUnits() {
-		UnitList iUnits = new UnitList();
+	private void makeUnits(UnitGroup iUnitGroup) {
 		Unit refUnit = unitGroup.getReferenceUnit();
 		int pos = 1;
 		for (Unit unit : unitGroup.getUnits()) {
 			org.openlca.ilcd.units.Unit iUnit = makeUnit(unit);
 			if (unit.equals(refUnit))
-				iUnit.dataSetInternalID = BigInteger.valueOf(0);
+				iUnit.id = 0;
 			else
-				iUnit.dataSetInternalID = BigInteger.valueOf(pos++);
-			iUnits.unit.add(iUnit);
+				iUnit.id = pos++;
+			iUnitGroup.add(iUnit);
 		}
-		return iUnits;
 	}
 
 	private org.openlca.ilcd.units.Unit makeUnit(Unit unit) {
 		org.openlca.ilcd.units.Unit iUnit = new org.openlca.ilcd.units.Unit();
-		iUnit.meanValue = unit.getConversionFactor();
+		iUnit.factor = unit.getConversionFactor();
 		iUnit.name = unit.getName();
 		if (unit.getDescription() != null) {
-			LangString.set(iUnit.generalComment,
+			LangString.set(iUnit.comment,
 					unit.getDescription(), config.lang);
 		}
 		UnitExtension unitExtension = new UnitExtension(iUnit);
@@ -106,7 +103,7 @@ public class UnitGroupExport {
 		DataEntry entry = new DataEntry();
 		info.dataEntry = entry;
 		entry.timeStamp = Out.getTimestamp(unitGroup);
-		entry.formats.add(Reference.forIlcdFormat());
+		entry.formats.add(Refs.ilcd());
 		addPublication(info);
 		return info;
 	}

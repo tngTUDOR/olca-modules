@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.openlca.ilcd.commons.IDataSet;
 import org.openlca.ilcd.sources.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +47,13 @@ public class ZipStore implements DataStore {
 		entries = new HashMap<>();
 		for (Path root : zip.getRootDirectories()) {
 			Files.walkFileTree(root, new FileVisitor(f -> {
-				String dir = f.getParent().getFileName().toString()
-						.toLowerCase();
+				Path p = f.getParent();
+				if (p == null)
+					return;
+				Path dirPath = p.getFileName();
+				if (dirPath == null)
+					return;
+				String dir = dirPath.toString().toLowerCase();
 				List<Path> list = getEntries(dir);
 				list.add(f);
 			}));
@@ -64,6 +70,10 @@ public class ZipStore implements DataStore {
 		return list;
 	}
 
+	public List<Path> getEntries(Class<? extends IDataSet> type) {
+		return getEntries(Dir.get(type));
+	}
+
 	@Override
 	public <T> T get(Class<T> type, String id) throws DataStoreException {
 		log.trace("Get {} for id {} from zip", type, id);
@@ -74,19 +84,19 @@ public class ZipStore implements DataStore {
 	}
 
 	@Override
-	public void put(Object obj, String id) throws DataStoreException {
-		log.trace("Store {} with id {} in zip.", obj, id);
-		if (obj == null || id == null)
+	public void put(IDataSet ds) throws DataStoreException {
+		log.trace("Store {} in zip.", ds);
+		if (ds == null)
 			return;
-		String dir = Dir.get(obj.getClass());
-		String entryName = "ILCD" + "/" + dir + "/" + id + ".xml";
+		String dir = Dir.get(ds.getClass());
+		String entryName = "ILCD" + "/" + dir + "/" + ds.getUUID() + ".xml";
 		try {
 			Path entry = zip.getPath(entryName);
 			Path parent = entry.getParent();
 			if (parent != null && !Files.exists(parent))
 				Files.createDirectories(parent);
 			OutputStream os = Files.newOutputStream(entry);
-			binder.toStream(obj, os);
+			binder.toStream(ds, os);
 			List<Path> list = getEntries(dir);
 			list.add(entry);
 		} catch (Exception e) {
@@ -95,24 +105,25 @@ public class ZipStore implements DataStore {
 	}
 
 	@Override
-	public void put(Source source, String id, File file)
+	public void put(Source source, File[] files)
 			throws DataStoreException {
-		log.trace("Store source {} with digital file {}", id, file);
-		put(source, id);
-		if (file == null)
+		log.trace("Store source {} with digital files", source);
+		put(source);
+		if (files == null || files.length == 0)
 			return;
-		Path entry = zip.getPath("ILCD/external_docs/" + file.getName());
-		Path parent = entry.getParent();
 		try {
+			Path parent = zip.getPath("ILCD/external_docs");
 			if (parent != null && !Files.exists(parent))
 				Files.createDirectories(parent);
-			Files.copy(file.toPath(), entry,
-					StandardCopyOption.REPLACE_EXISTING);
-			List<Path> list = getEntries("external_docs");
-			list.add(entry);
+			for (File file : files) {
+				Path entry = zip.getPath("ILCD/external_docs/" + file.getName());
+				Files.copy(file.toPath(), entry,
+						StandardCopyOption.REPLACE_EXISTING);
+				List<Path> list = getEntries("external_docs");
+				list.add(entry);
+			}
 		} catch (Exception e) {
-			throw new DataStoreException(
-					"Could not store digital file " + file, e);
+			throw new DataStoreException("Could not store digital files", e);
 		}
 	}
 

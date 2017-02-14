@@ -1,32 +1,33 @@
 package org.openlca.io.ecospold2;
 
 import org.openlca.core.model.Uncertainty;
-import org.openlca.ecospold2.LogNormal;
-import org.openlca.ecospold2.Normal;
-import org.openlca.ecospold2.Triangular;
-import org.openlca.ecospold2.Uniform;
+
+import spold2.LogNormal;
+import spold2.Normal;
+import spold2.Triangular;
+import spold2.Uniform;
 
 public class UncertaintyConverter {
 
-	public static Uncertainty toOpenLCA(org.openlca.ecospold2.Uncertainty spold) {
+	public static Uncertainty toOpenLCA(spold2.Uncertainty spold, double factor) {
 		if (spold == null)
 			return null;
 		if (spold.logNormal != null)
-			return toOpenLCA(spold.logNormal);
+			return toOpenLCA(spold.logNormal, factor);
 		else if (spold.normal != null)
-			return toOpenLCA(spold.normal);
+			return toOpenLCA(spold.normal, factor);
 		else if (spold.triangular != null)
-			return toOpenLCA(spold.triangular);
+			return toOpenLCA(spold.triangular, factor);
 		else if (spold.uniform != null)
-			return toOpenLCA(spold.uniform);
+			return toOpenLCA(spold.uniform, factor);
 		else
 			return null;
 	}
 
-	public static org.openlca.ecospold2.Uncertainty fromOpenLCA(Uncertainty olca) {
+	public static spold2.Uncertainty fromOpenLCA(Uncertainty olca) {
 		if (olca == null || olca.getDistributionType() == null)
 			return null;
-		org.openlca.ecospold2.Uncertainty uncertainty = new org.openlca.ecospold2.Uncertainty();
+		spold2.Uncertainty uncertainty = new spold2.Uncertainty();
 		switch (olca.getDistributionType()) {
 		case LOG_NORMAL:
 			uncertainty.logNormal = createLogNormal(olca);
@@ -77,14 +78,14 @@ public class UncertaintyConverter {
 	 * </code>
 	 * 
 	 */
-	private static Uncertainty toOpenLCA(LogNormal logNormal) {
+	private static Uncertainty toOpenLCA(LogNormal logNormal, double factor) {
 		if (logNormal == null)
 			return null;
 		// a variance can be never smaller 0, but better we check this
 		double v = logNormal.variance < 0 ? 0 : logNormal.variance;
 		double sigma = Math.sqrt(v);
 		double gsd = Math.exp(sigma);
-		return Uncertainty.logNormal(logNormal.meanValue, gsd);
+		return Uncertainty.logNormal(logNormal.meanValue * factor, gsd);
 	}
 
 	private static LogNormal createLogNormal(Uncertainty uncertainty) {
@@ -95,7 +96,8 @@ public class UncertaintyConverter {
 			double gmean = uncertainty.getParameter1Value();
 			logNormal.meanValue = gmean;
 			logNormal.mu = Math.log(gmean);
-		} if (uncertainty.getParameter2Value() != null) {
+		}
+		if (uncertainty.getParameter2Value() != null) {
 			double gsd = uncertainty.getParameter2Value();
 			double sigma = Math.log(gsd);
 			double var = Math.pow(sigma, 2);
@@ -105,14 +107,14 @@ public class UncertaintyConverter {
 		return logNormal;
 	}
 
-	private static Uncertainty toOpenLCA(Normal normal) {
+	private static Uncertainty toOpenLCA(Normal normal, double factor) {
 		if (normal == null)
 			return null;
 		double mean = normal.meanValue;
 		// a variance can be never smaller 0, but better we check this
 		double v = normal.variance < 0 ? 0 : normal.variance;
 		double sd = Math.sqrt(v);
-		return Uncertainty.normal(mean, sd);
+		return Uncertainty.normal(mean * factor, sd * factor);
 	}
 
 	private static Normal createNormal(Uncertainty uncertainty) {
@@ -129,11 +131,13 @@ public class UncertaintyConverter {
 		return normal;
 	}
 
-	private static Uncertainty toOpenLCA(Triangular triangular) {
+	private static Uncertainty toOpenLCA(Triangular triangular, double factor) {
 		if (triangular == null)
 			return null;
-		return Uncertainty.triangle(triangular.minValue,
-				triangular.mostLikelyValue, triangular.maxValue);
+		return Uncertainty.triangle(
+				triangular.minValue * factor,
+				triangular.mostLikelyValue * factor,
+				triangular.maxValue * factor);
 	}
 
 	private static Triangular createTriangular(Uncertainty uncertainty) {
@@ -149,11 +153,12 @@ public class UncertaintyConverter {
 		return triangular;
 	}
 
-	private static Uncertainty toOpenLCA(Uniform uniform) {
+	private static Uncertainty toOpenLCA(Uniform uniform, double factor) {
 		if (uniform == null)
 			return null;
-		return Uncertainty
-				.uniform(uniform.minValue, uniform.maxValue);
+		return Uncertainty.uniform(
+				uniform.minValue * factor,
+				uniform.maxValue * factor);
 	}
 
 	private static Uniform createUniform(Uncertainty uncertainty) {

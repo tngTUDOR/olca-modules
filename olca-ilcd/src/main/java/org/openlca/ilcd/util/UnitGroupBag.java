@@ -1,21 +1,18 @@
 package org.openlca.ilcd.util;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.openlca.ilcd.commons.AdminInfo;
 import org.openlca.ilcd.commons.Category;
 import org.openlca.ilcd.commons.DataEntry;
 import org.openlca.ilcd.commons.LangString;
+import org.openlca.ilcd.units.AdminInfo;
 import org.openlca.ilcd.units.DataSetInfo;
 import org.openlca.ilcd.units.QuantitativeReference;
-import org.openlca.ilcd.units.Unit;
 import org.openlca.ilcd.units.UnitGroup;
 import org.openlca.ilcd.units.UnitGroupInfo;
-import org.openlca.ilcd.units.UnitList;
 
 public class UnitGroupBag implements IBag<UnitGroup> {
 
@@ -40,13 +37,6 @@ public class UnitGroupBag implements IBag<UnitGroup> {
 				return qRef.referenceToReferenceUnit.intValue();
 		}
 		return null;
-	}
-
-	public List<Unit> getUnits() {
-		UnitList list = unitGroup.units;
-		if (list != null)
-			return list.unit;
-		return Collections.emptyList();
 	}
 
 	@Override

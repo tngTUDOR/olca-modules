@@ -5,10 +5,11 @@ import java.io.File;
 import org.openlca.core.database.ActorDao;
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.model.Actor;
-import org.openlca.ecospold2.master.Person;
-import org.openlca.ecospold2.master.PersonList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import spold2.Person;
+import spold2.PersonList;
 
 /**
  * Updates *existing* contact data sets that are created during a process import
@@ -30,7 +31,7 @@ public class PersonUpdate implements Runnable {
 	public void run() {
 		log.trace("update actors from {}", personFile);
 		try {
-			PersonList personList = PersonList.read(personFile);
+			PersonList personList = spold2.IO.read(personFile, PersonList.class);
 			if (personList == null)
 				return;
 			for (Person person : personList.persons) {
@@ -50,8 +51,8 @@ public class PersonUpdate implements Runnable {
 		actor.setEmail(person.email);
 		actor.setTelefax(person.telefax);
 		actor.setTelephone(person.telephone);
-		if (person.companyName != null)
-			actor.setDescription("company: " + person.companyName);
+		if (person.company != null)
+			actor.setDescription("company: " + person.company);
 		dao.update(actor);
 	}
 }
